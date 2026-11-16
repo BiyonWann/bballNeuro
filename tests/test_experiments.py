@@ -400,9 +400,7 @@ def test_run_sequential_starts_from_previous(big_train, big_test, shifted_train,
     assert unchanged_rows.sum() == 1
 
 
-def test_run_sequential_winner_moves_to_new_data(
-    big_train, big_test, shifted_train, rim_only_test
-):
+def test_run_sequential_winner_moves_to_new_data(big_train, big_test, shifted_train, rim_only_test):
     seasons = [("a", big_train, big_test), ("b", shifted_train, rim_only_test)]
 
     all_weights, frame = experiments.run_sequential(seasons, n_cells=2)
