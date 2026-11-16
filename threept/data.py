@@ -73,7 +73,7 @@ def add_features(shots: pd.DataFrame) -> pd.DataFrame:
 def _check_kind(kind: str) -> None:
     """Raise ValueError unless kind is "cartesian" or "polar"."""
     if kind not in ["cartesian", "polar"]:
-        raise ValueError(f"kind must be 'cartesian' or 'polar', not {kind!r}")
+        raise ValueError(f"kind must be 'cartesian' or 'polar', not '{kind}'")
 
 
 def court_to_inputs(points_ft: np.ndarray, kind: str) -> np.ndarray:
