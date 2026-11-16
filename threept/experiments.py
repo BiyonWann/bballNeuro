@@ -49,3 +49,25 @@ def evaluate(weights: np.ndarray, train: pd.DataFrame, test: pd.DataFrame, kind:
     dead_cells = network.find_dead_cells(data.get_inputs(train, kind), weights)
     result["dead_cells"] = len(dead_cells)
     return result
+
+
+def run_season(
+    train: pd.DataFrame,
+    test: pd.DataFrame,
+    kind: str = "cartesian",
+    n_cells: int = 6,
+    seeds: tuple = (0, 1, 2, 3, 4),
+) -> tuple:
+    """Return (results with one row per seed, the trained weights for each seed)."""
+    train_inputs = data.get_inputs(train, kind)
+    rows = []
+    all_weights = []
+    for seed in seeds:
+        weights = network.train(train_inputs, n_cells=n_cells, seed=seed)
+        row = {"seed": seed}
+        row.update(evaluate(weights, train, test, kind))
+        centers = metrics.kmeans_weights(train_inputs, n_cells, seed)
+        row["kmeans_gap"] = metrics.prototype_gap(weights, centers)
+        rows.append(row)
+        all_weights.append(weights)
+    return pd.DataFrame(rows), all_weights
