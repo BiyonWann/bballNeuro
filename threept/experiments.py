@@ -91,3 +91,31 @@ def run_baselines(
             row.update(evaluate(weights, train, test, kind))
             rows.append(row)
     return pd.DataFrame(rows)
+
+
+def run_sequential(
+    seasons: list, kind: str = "cartesian", n_cells: int = 6, seed: int = 0
+) -> tuple:
+    """Return (weights after each season, one summary row per season) from one network.
+
+    Each season starts from the previous season's weights, so the first season has no movement.
+    """
+    all_weights = []
+    rows = []
+    previous = None
+    for name, train, test in seasons:
+        train_inputs = data.get_inputs(train, kind)
+        weights = network.train(
+            train_inputs, n_cells=n_cells, seed=seed, initial_weights=previous
+        )
+        result = evaluate(weights, train, test, kind)
+        movement = float("nan")
+        if previous is not None:
+            movement = float(metrics.prototype_movement(previous, weights).mean())
+        row = {"season": name, "mean_movement": movement}
+        for key in ["rim", "mid_range", "beyond_20", "accuracy"]:
+            row[key] = result[key]
+        rows.append(row)
+        all_weights.append(weights)
+        previous = weights
+    return all_weights, pd.DataFrame(rows)
