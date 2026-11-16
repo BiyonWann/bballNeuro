@@ -163,3 +163,18 @@ def test_evaluate_arc_purity_no_arc_cells(small_train, small_test):
     result = experiments.evaluate(weights, small_train, small_test, "cartesian")
 
     assert np.isnan(result["mean_arc_purity"])
+
+
+def test_evaluate_polar(small_train, small_test):
+    weights = np.array([[1.0, 0.0], [25.0, 0.0]])
+
+    result = experiments.evaluate(weights, small_train, small_test, "polar")
+
+    assert result["accuracy"] == pytest.approx(0.8)
+    assert result["qe"] == pytest.approx(0.0)
+    assert result["beyond_20"] == pytest.approx(0.6)
+
+
+def test_evaluate_bad_kind(small_train, small_test, rim_arc_weights):
+    with pytest.raises(ValueError):
+        experiments.evaluate(rim_arc_weights, small_train, small_test, "radial")
