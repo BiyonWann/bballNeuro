@@ -101,6 +101,20 @@ def inputs_to_court(points: np.ndarray, kind: str) -> np.ndarray:
     return np.column_stack([distance_ft * np.sin(angle), distance_ft * np.cos(angle)])
 
 
+def split_by_game(
+    shots: pd.DataFrame, test_fraction: float = 0.2, seed: int = 0
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return (train, test) shots, with each game's shots all on one side."""
+    rng = np.random.default_rng(seed)
+    game_ids = shots["GAME_ID"].unique()
+    n_test_games = round(test_fraction * len(game_ids))
+    test_games = rng.choice(game_ids, size=n_test_games, replace=False)
+    is_test = shots["GAME_ID"].isin(test_games)
+    train = shots[~is_test].reset_index(drop=True)
+    test = shots[is_test].reset_index(drop=True)
+    return train, test
+
+
 def get_inputs(shots: pd.DataFrame, kind: str = "cartesian") -> np.ndarray:
     """Return the (n, 2) model inputs, built from the x_ft and y_ft columns only."""
     points_ft = shots[["x_ft", "y_ft"]].to_numpy(dtype=float)
