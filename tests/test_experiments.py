@@ -544,3 +544,64 @@ def test_shape_test_polar():
 def test_shape_test_bad_kind():
     with pytest.raises(ValueError):
         experiments.shape_test(np.array(CORNER_AND_TOP), "radial")
+
+
+def test_summarize_mean_and_std():
+    results = pd.DataFrame({"accuracy": [0.8, 0.9, 1.0]})
+
+    summary = experiments.summarize(results)
+
+    assert summary.loc["accuracy", "mean"] == pytest.approx(0.9)
+    assert summary.loc["accuracy", "std"] == pytest.approx(0.1)
+
+
+def test_summarize_layout():
+    results = pd.DataFrame({"accuracy": [0.8, 0.9], "qe": [1.0, 3.0]})
+
+    summary = experiments.summarize(results)
+
+    assert list(summary.index) == ["accuracy", "qe"]
+    assert list(summary.columns) == ["mean", "std"]
+
+
+def test_summarize_excludes_seed():
+    results = pd.DataFrame({"seed": [0, 1, 2], "accuracy": [0.8, 0.9, 1.0]})
+
+    summary = experiments.summarize(results)
+
+    assert "seed" not in summary.index
+
+
+def test_summarize_skips_text_columns():
+    results = pd.DataFrame({"method": ["kmeans", "random"], "accuracy": [0.8, 0.9]})
+
+    summary = experiments.summarize(results)
+
+    assert list(summary.index) == ["accuracy"]
+
+
+def test_summarize_skips_nan():
+    results = pd.DataFrame({"mean_arc_purity": [np.nan, 0.5, 0.7]})
+
+    summary = experiments.summarize(results)
+
+    assert summary.loc["mean_arc_purity", "mean"] == pytest.approx(0.6)
+
+
+def test_summarize_does_not_mutate():
+    results = pd.DataFrame({"seed": [0, 1], "accuracy": [0.8, 0.9]})
+    before = results.copy()
+
+    experiments.summarize(results)
+
+    pd.testing.assert_frame_equal(results, before)
+
+
+def test_summarize_run_season_output(big_train, big_test):
+    frame, _ = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1, 2))
+
+    summary = experiments.summarize(frame)
+
+    assert summary.loc["accuracy", "mean"] == pytest.approx(0.8)
+    assert summary.loc["accuracy", "std"] == pytest.approx(0.0)
+    assert "seed" not in summary.index
