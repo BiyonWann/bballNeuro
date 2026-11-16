@@ -115,6 +115,14 @@ def split_by_game(
     return train, test
 
 
+def sample_shots(shots: pd.DataFrame, n: int = 20000, seed: int = 0) -> pd.DataFrame:
+    """Return n random shots without replacement, or every shot if there are fewer than n."""
+    n_sampled = min(n, len(shots))
+    rng = np.random.default_rng(seed)
+    sample = shots.sample(n=n_sampled, random_state=rng)
+    return sample.reset_index(drop=True)
+
+
 def get_inputs(shots: pd.DataFrame, kind: str = "cartesian") -> np.ndarray:
     """Return the (n, 2) model inputs, built from the x_ft and y_ft columns only."""
     points_ft = shots[["x_ft", "y_ft"]].to_numpy(dtype=float)
