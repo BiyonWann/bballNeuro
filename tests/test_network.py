@@ -150,6 +150,14 @@ def test_train_learning_rate_decays_each_epoch():
     assert np.allclose(weights, np.array([[2.75, 0.0], [20.0, 0.0]]))
 
 
+def test_train_without_initial_weights_starts_from_init_weights():
+    inputs = make_random_inputs()
+
+    weights = train(inputs, n_cells=3, epochs=0, seed=4)
+
+    assert np.array_equal(weights, init_weights(inputs, 3, seed=4))
+
+
 def test_train_resets_learning_rate_each_call():
     inputs = np.array([[4.0, 0.0]])
     initial = np.array([[0.0, 0.0], [20.0, 0.0]])
