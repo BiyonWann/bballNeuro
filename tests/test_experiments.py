@@ -69,3 +69,46 @@ def test_evaluate_baseline_threes_win(small_test, rim_arc_weights):
     result = experiments.evaluate(rim_arc_weights, train, small_test, "cartesian")
 
     assert result["baseline"] == pytest.approx(0.4)
+
+
+def test_evaluate_qe_uses_test(small_train, rim_arc_weights):
+    test = make_frame(
+        y_ft=[2, 27], is_three=[False, True], zones=[RIM_ZONE, ARC_ZONE], games=[4, 5]
+    )
+
+    result = experiments.evaluate(rim_arc_weights, small_train, test, "cartesian")
+
+    assert result["qe"] == pytest.approx(1.5)
+
+
+def test_evaluate_ari_perfect(small_train, small_test, rim_arc_weights):
+    result = experiments.evaluate(rim_arc_weights, small_train, small_test, "cartesian")
+
+    assert result["ari"] == pytest.approx(1.0)
+
+
+def test_evaluate_group_shares(small_train, small_test, rim_arc_weights):
+    result = experiments.evaluate(rim_arc_weights, small_train, small_test, "cartesian")
+
+    assert result["rim"] == pytest.approx(0.4)
+    assert result["mid_range"] == pytest.approx(0.0)
+    assert result["beyond_20"] == pytest.approx(0.6)
+
+
+def test_evaluate_dead_cell(small_train, small_test):
+    weights = np.array([[0.0, 1.0], [0.0, 25.0], [0.0, 100.0]])
+
+    result = experiments.evaluate(weights, small_train, small_test, "cartesian")
+
+    assert result["dead_cells"] == 1
+
+
+def test_evaluate_dead_cells_use_train(small_train):
+    weights = np.array([[0.0, 1.0], [0.0, 25.0], [0.0, 10.0]])
+    test = make_frame(
+        y_ft=[10, 10], is_three=[False, False], zones=[RIM_ZONE, RIM_ZONE], games=[4, 4]
+    )
+
+    result = experiments.evaluate(weights, small_train, test, "cartesian")
+
+    assert result["dead_cells"] == 1
