@@ -99,3 +99,9 @@ def inputs_to_court(points: np.ndarray, kind: str) -> np.ndarray:
     angle = points[:, 1] / ARC_RADIUS_FT
     # The angle is measured from the +y axis, so x uses sin and y uses cos.
     return np.column_stack([distance_ft * np.sin(angle), distance_ft * np.cos(angle)])
+
+
+def get_inputs(shots: pd.DataFrame, kind: str = "cartesian") -> np.ndarray:
+    """Return the (n, 2) model inputs, built from the x_ft and y_ft columns only."""
+    points_ft = shots[["x_ft", "y_ft"]].to_numpy(dtype=float)
+    return court_to_inputs(points_ft, kind)
