@@ -53,3 +53,22 @@ def clean_shots(shots: pd.DataFrame) -> pd.DataFrame:
     has_location = shots["LOC_X"].notna() & shots["LOC_Y"].notna()
     cleaned = shots[in_zone & has_location]
     return cleaned.reset_index(drop=True)
+
+
+def _check_kind(kind: str) -> None:
+    """Raise ValueError unless kind is "cartesian" or "polar"."""
+    if kind not in ["cartesian", "polar"]:
+        raise ValueError(f"kind must be 'cartesian' or 'polar', not {kind!r}")
+
+
+def court_to_inputs(points_ft: np.ndarray, kind: str) -> np.ndarray:
+    """Return model inputs for (n, 2) court points: [x_ft, y_ft] or [distance_ft, arc_ft]."""
+    _check_kind(kind)
+    points_ft = np.asarray(points_ft, dtype=float)
+    if kind == "cartesian":
+        return points_ft.copy()
+    x_ft = points_ft[:, 0]
+    y_ft = points_ft[:, 1]
+    distance_ft = np.hypot(x_ft, y_ft)
+    angle = np.clip(np.arctan2(x_ft, y_ft), -MAX_ANGLE, MAX_ANGLE)
+    return np.column_stack([distance_ft, ARC_RADIUS_FT * angle])
