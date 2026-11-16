@@ -313,3 +313,59 @@ def test_kmeans_same_seed_same_result():
     second = metrics.kmeans_weights(inputs, 3, seed=1)
 
     np.testing.assert_array_equal(first, second)
+
+
+def test_prototype_gap_shuffled_is_zero():
+    reference = np.array([[0.0, 0.0], [5.0, 5.0], [10.0, 0.0]])
+    weights = reference[[2, 0, 1]]
+
+    gap = metrics.prototype_gap(weights, reference)
+
+    assert isinstance(gap, float)
+    assert gap == pytest.approx(0.0)
+
+
+def test_prototype_gap_hand_case():
+    reference = np.array([[0.0, 0.0], [10.0, 0.0]])
+    weights = np.array([[0.0, 1.0], [10.0, 3.0]])
+
+    gap = metrics.prototype_gap(weights, reference)
+
+    assert gap == pytest.approx(2.0)
+
+
+def test_prototype_gap_closest_pair_first():
+    reference = np.array([[0.0, 0.0], [1.0, 0.0]])
+    weights = np.array([[0.9, 0.0], [-2.0, 0.0]])
+
+    gap = metrics.prototype_gap(weights, reference)
+
+    assert gap == pytest.approx(1.05)
+
+
+def test_prototype_gap_reference_order_irrelevant():
+    reference = np.array([[0.0, 0.0], [10.0, 0.0], [0.0, 10.0]])
+    weights = np.array([[1.0, 0.0], [10.0, 2.0], [0.0, 13.0]])
+
+    gap = metrics.prototype_gap(weights, reference)
+    reversed_gap = metrics.prototype_gap(weights, reference[::-1])
+
+    assert gap == pytest.approx(2.0)
+    assert reversed_gap == pytest.approx(2.0)
+
+
+def test_prototype_gap_no_reuse():
+    reference = np.array([[0.0, 0.0], [0.0, 1.0]])
+    weights = np.array([[0.0, 0.0], [0.0, 10.0]])
+
+    gap = metrics.prototype_gap(weights, reference)
+
+    assert gap == pytest.approx(4.5)
+
+
+def test_prototype_gap_length_mismatch():
+    reference = np.array([[0.0, 0.0], [10.0, 0.0]])
+    weights = np.array([[0.0, 0.0]])
+
+    with pytest.raises(ValueError):
+        metrics.prototype_gap(weights, reference)
