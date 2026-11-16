@@ -80,3 +80,16 @@ def majority_baseline_accuracy(train_is_three: np.ndarray, test_is_three: np.nda
     """Return the accuracy of always guessing the training set's more common shot type."""
     guess_three = np.mean(train_is_three) > 0.5
     return float(np.mean(np.asarray(test_is_three) == guess_three))
+
+
+def _pairwise_distances(points: np.ndarray, others: np.ndarray) -> np.ndarray:
+    """Return an (n_points, n_others) array of Euclidean distances."""
+    # (n_points, 1, 2) - (1, n_others, 2)
+    differences = points[:, np.newaxis, :] - others[np.newaxis, :, :]
+    return np.linalg.norm(differences, axis=2)
+
+
+def quantization_error(inputs: np.ndarray, weights: np.ndarray) -> float:
+    """Return the mean distance from each input to its nearest prototype."""
+    distances = _pairwise_distances(inputs, weights)
+    return float(np.mean(distances.min(axis=1)))
