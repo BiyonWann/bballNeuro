@@ -446,3 +446,101 @@ def test_run_sequential_bad_kind(big_train, big_test):
 
     with pytest.raises(ValueError):
         experiments.run_sequential(seasons, kind="radial", n_cells=2)
+
+
+CORNER_AND_TOP = [[22.0, 0.0], [-22.0, 0.0], [0.0, 25.0], [0.0, 24.0]]
+
+
+def test_shape_test_keys():
+    result = experiments.shape_test(np.array(CORNER_AND_TOP), "cartesian")
+
+    assert set(result) == {"corner_mean_ft", "top_mean_ft", "n_corner", "n_top"}
+
+
+def test_shape_test_classifies_cells():
+    result = experiments.shape_test(np.array(CORNER_AND_TOP), "cartesian")
+
+    assert result["corner_mean_ft"] == pytest.approx(22.0)
+    assert result["top_mean_ft"] == pytest.approx(24.5)
+    assert result["n_corner"] == 2
+    assert result["n_top"] == 2
+
+
+def test_shape_test_ignores_inner_cells():
+    weights = np.array(CORNER_AND_TOP + [[0.0, 1.0], [0.0, 19.0]])
+
+    result = experiments.shape_test(weights, "cartesian")
+
+    assert result["n_corner"] == 2
+    assert result["n_top"] == 2
+    assert result["top_mean_ft"] == pytest.approx(24.5)
+
+
+def test_shape_test_ignores_wing_cells():
+    weights = np.array(CORNER_AND_TOP + [[17.0, 17.0]])
+
+    result = experiments.shape_test(weights, "cartesian")
+
+    assert result["n_corner"] == 2
+    assert result["n_top"] == 2
+    assert result["corner_mean_ft"] == pytest.approx(22.0)
+
+
+def test_shape_test_angle_boundaries():
+    weights = np.array([[24.0, 23.75 * 1.2], [24.0, 23.75 * 0.4]])
+
+    result = experiments.shape_test(weights, "polar")
+
+    assert result["n_corner"] == 1
+    assert result["n_top"] == 1
+
+
+def test_shape_test_just_inside_boundaries():
+    weights = np.array([[24.0, 23.75 * 1.19], [24.0, 23.75 * 0.41]])
+
+    result = experiments.shape_test(weights, "polar")
+
+    assert result["n_corner"] == 0
+    assert result["n_top"] == 0
+
+
+def test_shape_test_no_corner_cells():
+    result = experiments.shape_test(np.array([[0.0, 25.0], [0.0, 24.0]]), "cartesian")
+
+    assert np.isnan(result["corner_mean_ft"])
+    assert result["n_corner"] == 0
+    assert result["top_mean_ft"] == pytest.approx(24.5)
+
+
+def test_shape_test_no_top_cells():
+    result = experiments.shape_test(np.array([[22.0, 0.0], [-22.0, 0.0]]), "cartesian")
+
+    assert np.isnan(result["top_mean_ft"])
+    assert result["n_top"] == 0
+    assert result["corner_mean_ft"] == pytest.approx(22.0)
+
+
+def test_shape_test_no_arc_cells():
+    result = experiments.shape_test(np.array([[0.0, 1.0], [0.0, 5.0]]), "cartesian")
+
+    assert np.isnan(result["corner_mean_ft"])
+    assert np.isnan(result["top_mean_ft"])
+    assert result["n_corner"] == 0
+    assert result["n_top"] == 0
+
+
+def test_shape_test_polar():
+    arc_ft = 23.75 * np.pi / 2
+    weights = np.array([[22.0, arc_ft], [22.0, -arc_ft], [25.0, 0.0], [24.0, 0.0]])
+
+    result = experiments.shape_test(weights, "polar")
+
+    assert result["corner_mean_ft"] == pytest.approx(22.0)
+    assert result["top_mean_ft"] == pytest.approx(24.5)
+    assert result["n_corner"] == 2
+    assert result["n_top"] == 2
+
+
+def test_shape_test_bad_kind():
+    with pytest.raises(ValueError):
+        experiments.shape_test(np.array(CORNER_AND_TOP), "radial")
