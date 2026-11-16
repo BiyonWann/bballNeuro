@@ -5,6 +5,7 @@ import numpy as np
 RIM_MAX_FT = 8
 MID_MAX_FT = 20
 KINDS = ["cartesian", "polar"]
+ARC_RADIUS_FT = 23.75
 
 
 def _check_kind(kind: str) -> None:
@@ -19,3 +20,11 @@ def prototype_distances(weights: np.ndarray, kind: str) -> np.ndarray:
     if kind == "polar":
         return weights[:, 0].copy()
     return np.hypot(weights[:, 0], weights[:, 1])
+
+
+def prototype_angles(weights: np.ndarray, kind: str) -> np.ndarray:
+    """Return each prototype's angle in radians, 0 toward the top of the key."""
+    _check_kind(kind)
+    if kind == "polar":
+        return weights[:, 1] / ARC_RADIUS_FT
+    return np.arctan2(weights[:, 0], weights[:, 1])
