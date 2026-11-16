@@ -115,4 +115,4 @@ ruff check .
 ruff format --check .
 ```
 
-The tests never use the network, so they run on small fixtures. CI runs the same checks on every push and pull request.
+The tests never download anything, so they run on small fixtures. CI runs the same checks on every push and pull request.
