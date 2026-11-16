@@ -480,3 +480,11 @@ def test_plot_functions_do_not_mutate_inputs():
     before = originals + original_paths
     for index in range(len(before)):
         assert np.array_equal(before[index], after[index])
+
+
+def test_paths_legend_markers_are_neutral():
+    ax = court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES)
+
+    gray = matplotlib.colors.to_rgba("gray")
+    for handle in ax.get_legend().legend_handles:
+        assert np.asarray(handle.get_facecolor())[0] == pytest.approx(gray)
