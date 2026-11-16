@@ -301,12 +301,12 @@ def test_heatmap_bins_argument_sets_grid():
 def test_heatmap_bins_span_court(x_ft, y_ft):
     ax = court.plot_shot_heatmap(x_ft, y_ft)
 
-    corners = ax.collections[0].get_coordinates()
+    corners = ax.collections[0].get_coordinates()  # (rows, cols, 2)
 
-    assert corners[..., 0].min() == pytest.approx(-25)
-    assert corners[..., 0].max() == pytest.approx(25)
-    assert corners[..., 1].min() == pytest.approx(-5.25)
-    assert corners[..., 1].max() == pytest.approx(35)
+    assert corners[:, :, 0].min() == pytest.approx(-25)
+    assert corners[:, :, 0].max() == pytest.approx(25)
+    assert corners[:, :, 1].min() == pytest.approx(-5.25)
+    assert corners[:, :, 1].max() == pytest.approx(35)
 
 
 def test_heatmap_drops_shot_past_court():
