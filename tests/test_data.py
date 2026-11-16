@@ -319,3 +319,58 @@ def test_bad_kind_raises(function_name):
 def test_get_inputs_bad_kind_raises(xy_only):
     with pytest.raises(ValueError):
         data.get_inputs(xy_only, "spherical")
+
+
+def game_shots(n_games):
+    """Return 3 shots per game for games 1..n_games, each with a unique shot_id."""
+    game_ids = []
+    for game_id in range(1, n_games + 1):
+        game_ids = game_ids + [game_id, game_id, game_id]
+    return pd.DataFrame({"GAME_ID": game_ids, "shot_id": list(range(len(game_ids)))})
+
+
+def test_split_no_shared_games():
+    train, test = data.split_by_game(game_shots(20), test_fraction=0.2, seed=0)
+
+    assert set(train["GAME_ID"]) & set(test["GAME_ID"]) == set()
+    assert list(train.index) == list(range(len(train)))
+    assert list(test.index) == list(range(len(test)))
+
+
+def test_split_keeps_every_row():
+    train, test = data.split_by_game(game_shots(20), test_fraction=0.2, seed=0)
+
+    shot_ids = list(train["shot_id"]) + list(test["shot_id"])
+    assert sorted(shot_ids) == list(range(60))
+
+
+@pytest.mark.parametrize(
+    "n_games, test_fraction, n_test_games", [(20, 0.2, 4), (20, 0.5, 10), (7, 0.2, 1)]
+)
+def test_split_test_game_count(n_games, test_fraction, n_test_games):
+    train, test = data.split_by_game(game_shots(n_games), test_fraction=test_fraction, seed=0)
+
+    assert test["GAME_ID"].nunique() == n_test_games
+    assert len(test) == 3 * n_test_games
+    assert list(test.index) == list(range(3 * n_test_games))
+
+
+def test_split_zero_fraction():
+    train, test = data.split_by_game(game_shots(20), test_fraction=0.0, seed=0)
+
+    assert len(test) == 0
+    assert len(train) == 60
+
+
+def test_split_same_seed():
+    _, first = data.split_by_game(game_shots(20), seed=3)
+    _, second = data.split_by_game(game_shots(20), seed=3)
+
+    assert set(first["GAME_ID"]) == set(second["GAME_ID"])
+
+
+def test_split_different_seed():
+    _, first = data.split_by_game(game_shots(20), seed=0)
+    _, second = data.split_by_game(game_shots(20), seed=1)
+
+    assert set(first["GAME_ID"]) != set(second["GAME_ID"])
