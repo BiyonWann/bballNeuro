@@ -265,6 +265,14 @@ def test_zone_confusion_unknown_zone():
         metrics.zone_confusion(CONFUSION_LABELS, zones, ["C", "B", "A"], 2)
 
 
+def test_zone_confusion_label_out_of_range():
+    labels = np.array([0, 5])
+    zones = np.array(["A", "A"])
+
+    with pytest.raises(ValueError):
+        metrics.zone_confusion(labels, zones, ["A"], 2)
+
+
 def test_zone_confusion_accepts_series():
     zones = pd.Series(["A", "B", "B", "B", "C"], index=[10, 11, 12, 13, 14])
 
