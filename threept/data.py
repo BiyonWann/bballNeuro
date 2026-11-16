@@ -63,6 +63,9 @@ def add_features(shots: pd.DataFrame) -> pd.DataFrame:
     points_ft = featured[["x_ft", "y_ft"]].to_numpy()
     polar = court_to_inputs(points_ft, "polar")
     featured["distance_ft"] = polar[:, 0]
+    featured["arc_ft"] = polar[:, 1]
+    # court_to_inputs already applied the angle clip, so recover the angle from arc_ft.
+    featured["angle"] = featured["arc_ft"] / ARC_RADIUS_FT
     return featured
 
 
