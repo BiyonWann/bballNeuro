@@ -282,9 +282,40 @@ def test_add_features_does_not_mutate():
     assert set(featured.columns) == set(original.columns) | set(new_columns)
 
 
+@pytest.fixture
+def xy_only():
+    return pd.DataFrame({"x_ft": [3.0, -22.0, 0.0], "y_ft": [4.0, 0.0, 23.75]})
+
+
+def test_get_inputs_cartesian(xy_only):
+    inputs = data.get_inputs(xy_only, "cartesian")
+
+    assert inputs.shape == (3, 2)
+    assert inputs.dtype == float
+    assert inputs.tolist() == [[3.0, 4.0], [-22.0, 0.0], [0.0, 23.75]]
+
+
+def test_get_inputs_polar(xy_only):
+    inputs = data.get_inputs(xy_only, "polar")
+
+    expected = data.court_to_inputs(xy_only[["x_ft", "y_ft"]].to_numpy(), "polar")
+    assert inputs == pytest.approx(expected)
+
+
+def test_get_inputs_default_kind_is_cartesian(xy_only):
+    inputs = data.get_inputs(xy_only)
+
+    assert inputs.tolist() == [[3.0, 4.0], [-22.0, 0.0], [0.0, 23.75]]
+
+
 @pytest.mark.parametrize("function_name", ["court_to_inputs", "inputs_to_court"])
 def test_bad_kind_raises(function_name):
     function = getattr(data, function_name)
 
     with pytest.raises(ValueError):
         function(np.array([[1.0, 2.0]]), "spherical")
+
+
+def test_get_inputs_bad_kind_raises(xy_only):
+    with pytest.raises(ValueError):
+        data.get_inputs(xy_only, "spherical")
