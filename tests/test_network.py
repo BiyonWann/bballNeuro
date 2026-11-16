@@ -63,6 +63,23 @@ def test_init_weights_rows_come_from_inputs():
         assert (inputs == row).all(axis=1).any()
 
 
+def test_init_weights_int_inputs_give_float_weights():
+    inputs = np.array([[i, 10 * i] for i in range(10)])
+
+    weights = init_weights(inputs, 4, seed=0)
+
+    assert weights.dtype == float
+
+
+def test_train_int_inputs_keep_fractional_updates():
+    inputs = np.array([[0, 0], [1, 0]])
+
+    weights = train(inputs, n_cells=1, epochs=1, learning_rate=0.5, seed=0)
+
+    assert 0 < weights[0, 0] < 1
+    assert weights[0, 1] == 0
+
+
 def test_init_weights_rows_are_distinct():
     inputs = make_line_inputs(10)
 
