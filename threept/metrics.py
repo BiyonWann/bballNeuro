@@ -1,6 +1,7 @@
 """Evaluation metrics and baselines for the competitive learning network."""
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics import adjusted_rand_score
 
 RIM_MAX_FT = 8
@@ -99,3 +100,16 @@ def quantization_error(inputs: np.ndarray, weights: np.ndarray) -> float:
 def adjusted_rand(labels: np.ndarray, zones: np.ndarray) -> float:
     """Return the adjusted Rand index between learned cells and official zones."""
     return float(adjusted_rand_score(zones, labels))
+
+
+def zone_confusion(
+    labels: np.ndarray, zones: np.ndarray, zone_names: list, n_cells: int
+) -> pd.DataFrame:
+    """Return shot counts with one row per cell and one column per zone name."""
+    # Plain arrays, so a Series index from the test split cannot misalign the rows.
+    labels = np.asarray(labels)
+    zones = np.asarray(zones)
+    if not np.isin(zones, zone_names).all():
+        raise ValueError("zones contains a value that is not in zone_names")
+    counts = pd.crosstab(labels, zones, rownames=["cell"], colnames=["zone"])
+    return counts.reindex(index=range(n_cells), columns=zone_names, fill_value=0)
