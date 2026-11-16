@@ -434,3 +434,23 @@ def test_paths_single_season():
 def test_paths_name_count_mismatch_raises():
     with pytest.raises(ValueError):
         court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES[:2])
+
+
+def test_plot_functions_do_not_mutate_inputs():
+    x_ft, y_ft = four_shots()
+    grid_x, grid_y = small_grid()
+    grid_labels = np.array([[0, 1], [2, 3]])
+    prototypes = three_prototypes()
+    paths = two_cell_paths()
+    originals = [x_ft.copy(), y_ft.copy(), grid_x.copy(), grid_labels.copy(), prototypes.copy()]
+    original_paths = [season.copy() for season in paths]
+
+    court.plot_shot_heatmap(x_ft, y_ft)
+    court.plot_zone_map(grid_x, grid_y, grid_labels)
+    court.plot_prototypes(prototypes)
+    court.plot_prototype_paths(paths, SEASON_NAMES)
+
+    after = [x_ft, y_ft, grid_x, grid_labels, prototypes] + paths
+    before = originals + original_paths
+    for index in range(len(before)):
+        assert np.array_equal(before[index], after[index])
