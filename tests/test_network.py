@@ -1,7 +1,14 @@
 import numpy as np
 import pytest
 
-from threept.network import assign, count_wins, find_winner, init_weights, train
+from threept.network import (
+    assign,
+    count_wins,
+    find_dead_cells,
+    find_winner,
+    init_weights,
+    train,
+)
 
 
 def test_find_winner_picks_closest_cell():
@@ -258,3 +265,21 @@ def test_count_wins_counts_each_cell():
 
     assert np.array_equal(wins, np.array([2, 1, 0]))
     assert np.issubdtype(wins.dtype, np.integer)
+
+
+def test_find_dead_cells_reports_unused_cell():
+    inputs = np.array([[0.0, 0.0], [0.1, 0.0], [10.0, 0.0]])
+    weights = np.array([[0.0, 0.0], [10.0, 0.0], [50.0, 50.0]])
+
+    dead = find_dead_cells(inputs, weights)
+
+    assert np.array_equal(dead, np.array([2]))
+
+
+def test_find_dead_cells_empty_when_all_win():
+    inputs = np.array([[0.0, 0.0], [10.0, 0.0]])
+    weights = np.array([[0.0, 0.0], [10.0, 0.0]])
+
+    dead = find_dead_cells(inputs, weights)
+
+    assert len(dead) == 0
