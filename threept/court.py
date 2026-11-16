@@ -67,3 +67,15 @@ def court_grid(step_ft: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
     ys = _axis_points(BASELINE_Y, DRAWN_TOP_Y, step_ft)
     grid_x, grid_y = np.meshgrid(xs, ys)
     return grid_x, grid_y
+
+
+def plot_zone_map(grid_x, grid_y, grid_labels, ax=None):
+    """Color each grid point by its cell, draw the court on top, and return the Axes."""
+    grid_labels = np.asarray(grid_labels)
+    if grid_labels.shape != np.shape(grid_x):
+        raise ValueError(f"grid_labels shape {grid_labels.shape} != grid shape {np.shape(grid_x)}")
+    if ax is None:
+        figure, ax = plt.subplots()
+    ax.pcolormesh(grid_x, grid_y, grid_labels, shading="nearest")
+    draw_half_court(ax)
+    return ax
