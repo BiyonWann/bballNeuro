@@ -60,7 +60,7 @@ def test_init_weights_rows_come_from_inputs():
 
     assert weights.shape == (4, 2)
     for row in weights:
-        assert (inputs == row).all(axis=1).any()
+        assert row.tolist() in inputs.tolist()
 
 
 def test_init_weights_int_inputs_give_float_weights():
