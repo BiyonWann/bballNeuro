@@ -318,3 +318,62 @@ def test_heatmap_single_bin():
     ax.figure.canvas.draw()
 
     assert heatmap_counts(ax).max() == 5
+
+
+def three_prototypes():
+    """Return three prototypes in court feet: near the rim, left corner and top of the arc."""
+    return np.array([[0.0, 3.0], [-22.0, 0.0], [0.0, 24.0]])
+
+
+def marker_positions(ax):
+    """Return every scatter marker position on `ax`, stacked into one (n, 2) array."""
+    positions = [np.asarray(collection.get_offsets()) for collection in ax.collections]
+    return np.concatenate(positions)
+
+
+def test_prototypes_one_marker_each():
+    ax = court.plot_prototypes(three_prototypes())
+
+    assert marker_positions(ax) == pytest.approx(three_prototypes())
+
+
+def test_prototypes_numbered_by_index():
+    ax = court.plot_prototypes(three_prototypes())
+
+    texts = [text.get_text() for text in ax.texts]
+    positions = np.array([text.get_position() for text in ax.texts])
+    assert texts == ["0", "1", "2"]
+    assert positions == pytest.approx(three_prototypes())
+
+
+def test_prototypes_unnumbered_has_no_text():
+    ax = court.plot_prototypes(three_prototypes(), numbered=False)
+
+    assert len(ax.texts) == 0
+
+
+def test_prototypes_marker_colors_match_cells():
+    ax = court.plot_prototypes(three_prototypes())
+
+    colors = np.asarray(ax.collections[0].get_facecolor())
+
+    tab20 = matplotlib.colormaps["tab20"]
+    assert colors == pytest.approx(tab20(np.arange(3)))
+
+
+def test_prototypes_draw_no_court_lines():
+    ax = court.plot_prototypes(three_prototypes())
+
+    assert count_three_point_lines(ax) == 0
+
+
+def test_prototypes_two_calls_layer_on_same_axes():
+    ax = court.draw_half_court()
+
+    first = court.plot_prototypes(three_prototypes(), ax=ax, numbered=False)
+    second = court.plot_prototypes(three_prototypes(), ax=ax, numbered=False)
+
+    assert first is ax
+    assert second is ax
+    assert len(marker_positions(ax)) == 6
+    assert count_three_point_lines(ax) == 1
