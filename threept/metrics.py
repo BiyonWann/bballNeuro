@@ -1,6 +1,7 @@
 """Evaluation metrics and baselines for the competitive learning network."""
 
 import numpy as np
+from sklearn.metrics import adjusted_rand_score
 
 RIM_MAX_FT = 8
 MID_MAX_FT = 20
@@ -93,3 +94,8 @@ def quantization_error(inputs: np.ndarray, weights: np.ndarray) -> float:
     """Return the mean distance from each input to its nearest prototype."""
     distances = _pairwise_distances(inputs, weights)
     return float(np.mean(distances.min(axis=1)))
+
+
+def adjusted_rand(labels: np.ndarray, zones: np.ndarray) -> float:
+    """Return the adjusted Rand index between learned cells and official zones."""
+    return float(adjusted_rand_score(zones, labels))
