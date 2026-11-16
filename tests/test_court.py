@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
 import pytest  # noqa: E402
 
 from threept import court  # noqa: E402
@@ -29,3 +30,69 @@ def test_constants_match_interface():
 def test_corner_break_y_value():
     assert court.CORNER_BREAK_Y == pytest.approx(8.948, abs=1e-3)
     assert 22**2 + court.CORNER_BREAK_Y**2 == pytest.approx(23.75**2)
+
+
+def test_three_point_line_returns_matching_arrays():
+    xs, ys = court.three_point_line()
+
+    assert xs.ndim == 1
+    assert xs.shape == ys.shape
+
+
+def test_arc_points_are_23_75_ft_from_basket():
+    xs, ys = court.three_point_line()
+
+    arc_distances = np.hypot(xs[1:-1], ys[1:-1])
+
+    assert arc_distances == pytest.approx(np.full(len(arc_distances), 23.75))
+
+
+def test_corner_segments_are_vertical_at_22_ft():
+    xs, ys = court.three_point_line()
+
+    assert (xs[0], ys[0]) == pytest.approx((-22, -5.25))
+    assert (xs[1], ys[1]) == pytest.approx((-22, court.CORNER_BREAK_Y))
+    assert (xs[-2], ys[-2]) == pytest.approx((22, court.CORNER_BREAK_Y))
+    assert (xs[-1], ys[-1]) == pytest.approx((22, -5.25))
+
+
+def test_line_starts_and_ends_on_baseline():
+    xs, ys = court.three_point_line()
+
+    assert (xs[0], ys[0]) == pytest.approx((-22, court.BASELINE_Y))
+    assert (xs[-1], ys[-1]) == pytest.approx((22, court.BASELINE_Y))
+
+
+def test_corners_meet_arc_at_corner_break():
+    xs, ys = court.three_point_line()
+
+    arc_xs = xs[1:-1]
+    arc_ys = ys[1:-1]
+
+    assert (arc_xs[0], arc_ys[0]) == pytest.approx((-22, court.CORNER_BREAK_Y))
+    assert (arc_xs[-1], arc_ys[-1]) == pytest.approx((22, court.CORNER_BREAK_Y))
+
+
+def test_arc_has_no_jumps():
+    xs, ys = court.three_point_line(n_points=200)
+
+    steps = np.hypot(np.diff(xs[1:-1]), np.diff(ys[1:-1]))
+
+    assert steps.max() < 1
+
+
+def test_arc_peak_is_at_top_of_key():
+    xs, ys = court.three_point_line(n_points=201)
+
+    peak = np.argmax(ys)
+
+    assert ys[peak] == pytest.approx(23.75)
+    assert xs[peak] == pytest.approx(0, abs=1e-9)
+
+
+@pytest.mark.parametrize(("n_points", "expected_length"), [(50, 52), (200, 202)])
+def test_n_points_sets_arc_resolution(n_points, expected_length):
+    xs, ys = court.three_point_line(n_points=n_points)
+
+    assert len(xs) == expected_length
+    assert len(ys) == expected_length
