@@ -217,3 +217,58 @@ def test_ari_anti_correlated():
     ari = metrics.adjusted_rand(labels, zones)
 
     assert ari == pytest.approx(-0.5)
+
+
+CONFUSION_LABELS = np.array([0, 0, 1, 1, 1])
+CONFUSION_ZONES = np.array(["A", "B", "B", "B", "C"])
+
+
+def test_zone_confusion_counts():
+    zone_names = ["C", "B", "A"]
+
+    table = metrics.zone_confusion(CONFUSION_LABELS, CONFUSION_ZONES, zone_names, 2)
+
+    assert table.loc[0].tolist() == [0, 1, 1]
+    assert table.loc[1].tolist() == [1, 2, 0]
+
+
+def test_zone_confusion_column_order():
+    zone_names = ["C", "B", "A"]
+
+    table = metrics.zone_confusion(CONFUSION_LABELS, CONFUSION_ZONES, zone_names, 2)
+
+    assert list(table.columns) == ["C", "B", "A"]
+
+
+def test_zone_confusion_missing_zone():
+    zone_names = ["C", "B", "A", "D"]
+
+    table = metrics.zone_confusion(CONFUSION_LABELS, CONFUSION_ZONES, zone_names, 2)
+
+    assert table["D"].tolist() == [0, 0]
+
+
+def test_zone_confusion_dead_cell_row():
+    zone_names = ["C", "B", "A"]
+
+    table = metrics.zone_confusion(CONFUSION_LABELS, CONFUSION_ZONES, zone_names, 3)
+
+    assert table.shape == (3, 3)
+    assert list(table.index) == [0, 1, 2]
+    assert table.loc[2].tolist() == [0, 0, 0]
+
+
+def test_zone_confusion_unknown_zone():
+    zones = np.array(["A", "B", "B", "B", "E"])
+
+    with pytest.raises(ValueError):
+        metrics.zone_confusion(CONFUSION_LABELS, zones, ["C", "B", "A"], 2)
+
+
+def test_zone_confusion_accepts_series():
+    zones = pd.Series(["A", "B", "B", "B", "C"], index=[10, 11, 12, 13, 14])
+
+    table = metrics.zone_confusion(CONFUSION_LABELS, zones, ["C", "B", "A"], 2)
+
+    assert table.loc[0].tolist() == [0, 1, 1]
+    assert table.loc[1].tolist() == [1, 2, 0]
