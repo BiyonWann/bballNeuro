@@ -113,3 +113,22 @@ def test_train_one_epoch_visits_every_shot():
     weights = train(inputs, n_cells=2, epochs=1, learning_rate=0.5, initial_weights=initial)
 
     assert np.array_equal(weights, np.array([[0.5, 0.0], [9.5, 0.0]]))
+
+
+def test_train_learning_rate_decays_each_epoch():
+    inputs = np.array([[4.0, 0.0]])
+    initial = np.array([[0.0, 0.0], [20.0, 0.0]])
+
+    weights = train(inputs, n_cells=2, epochs=2, learning_rate=0.5, initial_weights=initial)
+
+    assert np.array_equal(weights, np.array([[2.5, 0.0], [20.0, 0.0]]))
+
+
+def test_train_resets_learning_rate_each_call():
+    inputs = np.array([[4.0, 0.0]])
+    initial = np.array([[0.0, 0.0], [20.0, 0.0]])
+    first = train(inputs, n_cells=2, epochs=1, learning_rate=0.5, initial_weights=initial)
+
+    second = train(inputs, n_cells=2, epochs=1, learning_rate=0.5, initial_weights=first)
+
+    assert np.array_equal(second, np.array([[3.0, 0.0], [20.0, 0.0]]))
