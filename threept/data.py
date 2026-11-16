@@ -72,3 +72,15 @@ def court_to_inputs(points_ft: np.ndarray, kind: str) -> np.ndarray:
     distance_ft = np.hypot(x_ft, y_ft)
     angle = np.clip(np.arctan2(x_ft, y_ft), -MAX_ANGLE, MAX_ANGLE)
     return np.column_stack([distance_ft, ARC_RADIUS_FT * angle])
+
+
+def inputs_to_court(points: np.ndarray, kind: str) -> np.ndarray:
+    """Return (n, 2) court points [x_ft, y_ft] for model inputs, the inverse of court_to_inputs."""
+    _check_kind(kind)
+    points = np.asarray(points, dtype=float)
+    if kind == "cartesian":
+        return points.copy()
+    distance_ft = points[:, 0]
+    angle = points[:, 1] / ARC_RADIUS_FT
+    # The angle is measured from the +y axis, so x uses sin and y uses cos.
+    return np.column_stack([distance_ft * np.sin(angle), distance_ft * np.cos(angle)])
