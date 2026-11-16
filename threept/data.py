@@ -66,6 +66,7 @@ def add_features(shots: pd.DataFrame) -> pd.DataFrame:
     featured["arc_ft"] = polar[:, 1]
     # court_to_inputs already applied the angle clip, so recover the angle from arc_ft.
     featured["angle"] = featured["arc_ft"] / ARC_RADIUS_FT
+    featured["is_three"] = featured["SHOT_TYPE"].str.startswith("3PT")
     return featured
 
 
