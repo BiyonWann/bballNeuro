@@ -618,3 +618,12 @@ def test_paths_more_seasons_than_markers_raises():
 
     with pytest.raises(ValueError):
         court.plot_prototype_paths(seven_seasons, seven_names)
+
+
+def test_heatmap_bad_max_count_opens_no_figure():
+    x_ft, y_ft = four_shots()
+
+    with pytest.raises(ValueError):
+        court.plot_shot_heatmap(x_ft, y_ft, max_count=0)
+
+    assert plt.get_fignums() == []
