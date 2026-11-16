@@ -359,7 +359,7 @@ def test_heatmap_max_count_keeps_counts_and_court():
     assert count_three_point_lines(ax) == 1
 
 
-def three_shots_and_five_shots():
+def two_shot_sets_with_shared_three_shot_bin():
     """Return two shot sets that both have a 3-shot bin at (0, 1), with different busiest bins."""
     x_first, y_first = four_shots()
     x_second = np.array([0.0, 0.0, 0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
@@ -372,11 +372,13 @@ def three_shot_bin_color(ax):
     ax.figure.canvas.draw()
     counts = np.ma.asarray(ax.collections[0].get_array()).ravel()
     colors = np.asarray(ax.collections[0].get_facecolor())
-    return colors[np.argmax(counts == 3)]
+    for bin_index in range(len(counts)):
+        if counts[bin_index] == 3:
+            return colors[bin_index]
 
 
 def test_heatmap_shared_scale_gives_same_color_for_same_count():
-    first, second = three_shots_and_five_shots()
+    first, second = two_shot_sets_with_shared_three_shot_bin()
     ax_first = court.plot_shot_heatmap(first[0], first[1], max_count=10)
     ax_second = court.plot_shot_heatmap(second[0], second[1], max_count=10)
 
@@ -387,7 +389,7 @@ def test_heatmap_shared_scale_gives_same_color_for_same_count():
 
 
 def test_heatmap_without_max_count_colors_differ_across_heatmaps():
-    first, second = three_shots_and_five_shots()
+    first, second = two_shot_sets_with_shared_three_shot_bin()
     ax_first = court.plot_shot_heatmap(first[0], first[1])
     ax_second = court.plot_shot_heatmap(second[0], second[1])
 
