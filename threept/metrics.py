@@ -32,16 +32,29 @@ def prototype_angles(weights: np.ndarray, kind: str) -> np.ndarray:
     return np.arctan2(weights[:, 0], weights[:, 1])
 
 
-def cell_allocation(distances: np.ndarray) -> dict:
-    """Return how many cells sit at the rim, in the mid-range and beyond 20 ft."""
+def _group_masks(distances: np.ndarray) -> dict:
+    """Return a boolean mask for each distance group, keyed like cell_allocation."""
     is_rim = distances < RIM_MAX_FT
     is_beyond = distances > MID_MAX_FT
     is_mid = ~is_rim & ~is_beyond
-    return {
-        "rim": int(is_rim.sum()),
-        "mid_range": int(is_mid.sum()),
-        "beyond_20": int(is_beyond.sum()),
-    }
+    return {"rim": is_rim, "mid_range": is_mid, "beyond_20": is_beyond}
+
+
+def cell_allocation(distances: np.ndarray) -> dict:
+    """Return how many cells sit at the rim, in the mid-range and beyond 20 ft."""
+    allocation = {}
+    for group, mask in _group_masks(distances).items():
+        allocation[group] = int(mask.sum())
+    return allocation
+
+
+def shot_share_by_group(labels: np.ndarray, distances: np.ndarray) -> dict:
+    """Return the share of shots won by rim, mid-range and beyond-20 cells."""
+    winner_distances = distances[np.asarray(labels)]
+    shares = {}
+    for group, mask in _group_masks(winner_distances).items():
+        shares[group] = float(mask.mean())
+    return shares
 
 
 def _shot_counts(labels: np.ndarray, is_three: np.ndarray, n_cells: int) -> tuple:
