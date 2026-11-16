@@ -338,3 +338,111 @@ def test_run_baselines_deterministic(big_train, big_test):
 def test_run_baselines_bad_kind(big_train, big_test):
     with pytest.raises(ValueError):
         experiments.run_baselines(big_train, big_test, kind="radial", n_cells=2)
+
+
+@pytest.fixture
+def rim_only_test():
+    return make_frame(
+        y_ft=[1] * 20,
+        is_three=[False] * 20,
+        zones=[RIM_ZONE] * 20,
+        games=[9] * 20,
+    )
+
+
+@pytest.fixture
+def shifted_train():
+    return make_frame(
+        y_ft=[10] * 60,
+        is_three=[False] * 60,
+        zones=[RIM_ZONE] * 60,
+        games=[10] * 60,
+    )
+
+
+def test_run_sequential_shapes(big_train, big_test):
+    seasons = [("a", big_train, big_test), ("b", big_train, big_test)]
+
+    all_weights, frame = experiments.run_sequential(seasons, n_cells=2)
+
+    assert len(all_weights) == 2
+    assert all_weights[0].shape == (2, 2)
+    assert list(frame["season"]) == ["a", "b"]
+    assert list(frame.columns) == [
+        "season",
+        "mean_movement",
+        "rim",
+        "mid_range",
+        "beyond_20",
+        "accuracy",
+    ]
+
+
+def test_run_sequential_scores_each_season(big_train, big_test, rim_only_test):
+    seasons = [("a", big_train, big_test), ("b", big_train, rim_only_test)]
+
+    _, frame = experiments.run_sequential(seasons, n_cells=2)
+
+    assert frame.loc[0, "rim"] == pytest.approx(0.4)
+    assert frame.loc[0, "beyond_20"] == pytest.approx(0.6)
+    assert frame.loc[0, "accuracy"] == pytest.approx(0.8)
+    assert frame.loc[1, "rim"] == pytest.approx(1.0)
+    assert frame.loc[1, "beyond_20"] == pytest.approx(0.0)
+    assert frame.loc[1, "accuracy"] == pytest.approx(1.0)
+
+
+def test_run_sequential_starts_from_previous(big_train, big_test, shifted_train, rim_only_test):
+    seasons = [("a", big_train, big_test), ("b", shifted_train, rim_only_test)]
+
+    all_weights, _ = experiments.run_sequential(seasons, n_cells=2)
+
+    unchanged_rows = (all_weights[0] == all_weights[1]).all(axis=1)
+    assert unchanged_rows.sum() == 1
+
+
+def test_run_sequential_winner_moves_to_new_data(
+    big_train, big_test, shifted_train, rim_only_test
+):
+    seasons = [("a", big_train, big_test), ("b", shifted_train, rim_only_test)]
+
+    all_weights, frame = experiments.run_sequential(seasons, n_cells=2)
+
+    changed_rows = (all_weights[0] != all_weights[1]).any(axis=1)
+    np.testing.assert_allclose(all_weights[1][changed_rows][0], [0.0, 10.0], atol=0.5)
+    distances = np.linalg.norm(all_weights[1] - all_weights[0], axis=1)
+    assert frame.loc[1, "mean_movement"] == pytest.approx(distances.mean())
+
+
+def test_run_sequential_first_movement_nan(big_train, big_test):
+    seasons = [("a", big_train, big_test), ("b", big_train, big_test)]
+
+    _, frame = experiments.run_sequential(seasons, n_cells=2)
+
+    assert np.isnan(frame.loc[0, "mean_movement"])
+    assert not np.isnan(frame.loc[1, "mean_movement"])
+
+
+def test_run_sequential_deterministic(big_train, big_test):
+    seasons = [("a", big_train, big_test), ("b", big_train, big_test)]
+
+    first_weights, first = experiments.run_sequential(seasons, n_cells=2)
+    second_weights, second = experiments.run_sequential(seasons, n_cells=2)
+
+    pd.testing.assert_frame_equal(first, second)
+    np.testing.assert_array_equal(first_weights, second_weights)
+
+
+def test_run_sequential_polar(big_train, big_test):
+    seasons = [("a", big_train, big_test), ("b", big_train, big_test)]
+
+    all_weights, frame = experiments.run_sequential(seasons, kind="polar", n_cells=2)
+
+    assert all_weights[1].shape == (2, 2)
+    np.testing.assert_allclose(frame["accuracy"], 0.8)
+
+
+def test_run_sequential_bad_kind(big_train, big_test):
+    seasons = [("a", big_train, big_test)]
+
+    with pytest.raises(ValueError):
+        experiments.run_sequential(seasons, kind="radial", n_cells=2)
