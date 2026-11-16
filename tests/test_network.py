@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pytest
 
@@ -283,3 +285,61 @@ def test_find_dead_cells_empty_when_all_win():
     dead = find_dead_cells(inputs, weights)
 
     assert len(dead) == 0
+
+
+def make_random_inputs():
+    rng = np.random.default_rng(0)
+    return rng.uniform(-25.0, 25.0, size=(200, 2))
+
+
+def test_train_same_seed_same_weights():
+    inputs = make_random_inputs()
+
+    first = train(inputs, n_cells=3, seed=0)
+    second = train(inputs, n_cells=3, seed=0)
+
+    assert np.array_equal(first, second)
+
+
+def test_train_different_seed_different_weights():
+    inputs = make_random_inputs()
+
+    first = train(inputs, n_cells=3, seed=0)
+    second = train(inputs, n_cells=3, seed=1)
+
+    assert not np.array_equal(first, second)
+
+
+def test_train_ignores_global_random_state():
+    inputs = make_random_inputs()
+
+    np.random.seed(1)
+    first = train(inputs, n_cells=3, seed=0)
+    np.random.seed(2)
+    second = train(inputs, n_cells=3, seed=0)
+
+    assert np.array_equal(first, second)
+
+
+def test_train_two_clusters_finds_cluster_means():
+    rng = np.random.default_rng(0)
+    left = rng.normal([-10.0, 0.0], 1.0, size=(200, 2))
+    right = rng.normal([10.0, 0.0], 1.0, size=(200, 2))
+    inputs = np.vstack([left, right])
+
+    weights = train(inputs, n_cells=2, seed=0)
+    by_x = weights[np.argsort(weights[:, 0])]
+
+    assert np.linalg.norm(by_x[0] - left.mean(axis=0)) < 0.5
+    assert np.linalg.norm(by_x[1] - right.mean(axis=0)) < 0.5
+
+
+def test_train_20000_shots_under_10_seconds():
+    rng = np.random.default_rng(0)
+    inputs = rng.uniform([-25.0, -5.25], [25.0, 35.0], size=(20000, 2))
+
+    start = time.perf_counter()
+    train(inputs, seed=0)
+    elapsed = time.perf_counter() - start
+
+    assert elapsed < 10.0
