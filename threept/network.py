@@ -59,3 +59,11 @@ def leak_losers(x: np.ndarray, weights: np.ndarray, winner: int, leak_k: float) 
     w = weights[losers]
     # (n_losers, 2) - (2,)
     weights[losers] = w + leak_k * (x - w)
+
+
+def assign(inputs: np.ndarray, weights: np.ndarray) -> np.ndarray:
+    """Return the closest cell for every shot, with ties going to the lowest index."""
+    # (n_shots, 1, 2) - (1, n_cells, 2)
+    differences = inputs[:, np.newaxis, :] - weights[np.newaxis, :, :]
+    distances = np.linalg.norm(differences, axis=2)
+    return np.argmin(distances, axis=1)
