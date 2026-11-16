@@ -30,3 +30,35 @@ def test_prototype_distances_bad_kind():
 
     with pytest.raises(ValueError):
         metrics.prototype_distances(weights, "radial")
+
+
+@pytest.mark.parametrize(
+    "point, expected",
+    [
+        ([0.0, 10.0], 0.0),
+        ([10.0, 0.0], np.pi / 2),
+        ([-10.0, 0.0], -np.pi / 2),
+        ([10.0, 10.0], np.pi / 4),
+    ],
+)
+def test_prototype_angles_cartesian(point, expected):
+    weights = np.array([point])
+
+    angles = metrics.prototype_angles(weights, "cartesian")
+
+    np.testing.assert_allclose(angles, [expected])
+
+
+def test_prototype_angles_polar():
+    weights = np.array([[23.75, 23.75], [22.0, 0.0], [22.0, -23.75 * np.pi / 2]])
+
+    angles = metrics.prototype_angles(weights, "polar")
+
+    np.testing.assert_allclose(angles, [1.0, 0.0, -np.pi / 2])
+
+
+def test_prototype_angles_bad_kind():
+    weights = np.array([[3.0, 4.0]])
+
+    with pytest.raises(ValueError):
+        metrics.prototype_angles(weights, "xy")
