@@ -146,3 +146,39 @@ def test_clean_shots_resets_index(loaded_fixture):
     shots = data.clean_shots(loaded_fixture)
 
     assert list(shots.index) == list(range(38))
+
+
+def test_court_to_inputs_cartesian():
+    points = np.array([[3, 4], [-22, 0]])
+
+    inputs = data.court_to_inputs(points, "cartesian")
+
+    assert inputs.dtype == float
+    assert inputs.tolist() == [[3.0, 4.0], [-22.0, 0.0]]
+
+
+def test_court_to_inputs_polar():
+    points = np.array([[0.0, 23.75], [22.0, 0.0], [3.0, 4.0]])
+
+    inputs = data.court_to_inputs(points, "polar")
+
+    expected = [[23.75, 0.0], [22.0, 23.75 * np.pi / 2], [5.0, 23.75 * np.arctan2(3, 4)]]
+    assert inputs == pytest.approx(np.array(expected))
+
+
+@pytest.mark.parametrize("x_ft, sign", [(0.5, 1), (-0.5, -1)])
+def test_court_to_inputs_polar_clips(x_ft, sign):
+    points = np.array([[x_ft, -3.0]])
+
+    inputs = data.court_to_inputs(points, "polar")
+
+    assert inputs[0, 0] == pytest.approx(np.hypot(0.5, 3.0))
+    assert inputs[0, 1] == pytest.approx(sign * 23.75 * data.MAX_ANGLE)
+
+
+@pytest.mark.parametrize("function_name", ["court_to_inputs"])
+def test_bad_kind_raises(function_name):
+    function = getattr(data, function_name)
+
+    with pytest.raises(ValueError):
+        function(np.array([[1.0, 2.0]]), "spherical")
