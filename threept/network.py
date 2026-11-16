@@ -73,3 +73,9 @@ def count_wins(inputs: np.ndarray, weights: np.ndarray) -> np.ndarray:
     """Return the number of shots each cell wins, shape (n_cells,)."""
     labels = assign(inputs, weights)
     return np.bincount(labels, minlength=len(weights))
+
+
+def find_dead_cells(inputs: np.ndarray, weights: np.ndarray) -> np.ndarray:
+    """Return the indices of cells that win no shots."""
+    wins = count_wins(inputs, weights)
+    return np.flatnonzero(wins == 0)
