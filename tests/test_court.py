@@ -377,3 +377,60 @@ def test_prototypes_two_calls_layer_on_same_axes():
     assert second is ax
     assert len(marker_positions(ax)) == 6
     assert count_three_point_lines(ax) == 1
+
+
+SEASON_NAMES = ["2000-01", "2015-16", "2024-25"]
+
+
+def two_cell_paths():
+    """Return 3 seasons of 2 cells: cell 0 moves out from the rim, cell 1 into the corner."""
+    return [
+        np.array([[0.0, 5.0], [-20.0, 0.0]]),
+        np.array([[0.0, 10.0], [-21.0, 0.0]]),
+        np.array([[0.0, 20.0], [-22.0, 0.0]]),
+    ]
+
+
+def test_paths_one_line_per_cell():
+    ax = court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES)
+
+    line_0 = np.column_stack([ax.lines[0].get_xdata(), ax.lines[0].get_ydata()])
+    line_1 = np.column_stack([ax.lines[1].get_xdata(), ax.lines[1].get_ydata()])
+    assert len(ax.lines) == 2
+    assert line_0 == pytest.approx(np.array([[0.0, 5.0], [0.0, 10.0], [0.0, 20.0]]))
+    assert line_1 == pytest.approx(np.array([[-20.0, 0.0], [-21.0, 0.0], [-22.0, 0.0]]))
+
+
+def test_paths_label_seasons():
+    ax = court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES)
+
+    legend_texts = [text.get_text() for text in ax.get_legend().get_texts()]
+    assert legend_texts == SEASON_NAMES
+
+
+def test_paths_line_colors_match_cells():
+    ax = court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES)
+
+    tab20 = matplotlib.colormaps["tab20"]
+    for cell in [0, 1]:
+        line_color = matplotlib.colors.to_rgba(ax.lines[cell].get_color())
+        assert line_color == pytest.approx(tab20(cell))
+
+
+def test_paths_draw_no_court_lines():
+    ax = court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES)
+
+    assert count_three_point_lines(ax) == 0
+
+
+def test_paths_single_season():
+    ax = court.plot_prototype_paths(two_cell_paths()[:1], SEASON_NAMES[:1])
+
+    assert len(ax.lines) == 2
+    assert len(ax.lines[0].get_xdata()) == 1
+    assert len(ax.lines[1].get_xdata()) == 1
+
+
+def test_paths_name_count_mismatch_raises():
+    with pytest.raises(ValueError):
+        court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES[:2])
