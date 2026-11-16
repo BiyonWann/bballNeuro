@@ -18,3 +18,26 @@ def init_weights(inputs: np.ndarray, n_cells: int, seed: int = 0) -> np.ndarray:
     rng = np.random.default_rng(seed)
     rows = rng.choice(len(inputs), n_cells, replace=False)
     return inputs[rows].copy()
+
+
+def train(
+    inputs: np.ndarray,
+    n_cells: int = 6,
+    epochs: int = 8,
+    learning_rate: float = 0.05,
+    seed: int = 0,
+    initial_weights: np.ndarray | None = None,
+    leak_rate: float = 0.0,
+) -> np.ndarray:
+    """Return the trained weights, one prototype row per cell."""
+    if initial_weights is None:
+        weights = init_weights(inputs, n_cells, seed)
+    else:
+        weights = initial_weights
+    k = learning_rate
+    for _epoch in range(epochs):
+        for x in inputs:
+            winner = find_winner(x, weights)
+            w = weights[winner]
+            weights[winner] = w + k * (x - w)
+    return weights
