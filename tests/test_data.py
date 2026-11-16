@@ -1,4 +1,5 @@
 import shutil
+import tarfile
 import urllib.request
 from pathlib import Path
 
@@ -53,3 +54,41 @@ def test_download_season_accepts_str_dir(cached_dir, no_network):
     path = data.download_season(2000, data_dir=str(cached_dir))
 
     assert path == cached_dir / "shotdetail_2000.csv"
+
+
+@pytest.fixture
+def fake_download(tmp_path, monkeypatch):
+    source_dir = tmp_path / "src"
+    source_dir.mkdir()
+    shutil.copy(FIXTURE, source_dir / "shotdetail_2000.csv")
+    archive = source_dir / "shotdetail_2000.tar.xz"
+    with tarfile.open(archive, "w:xz") as tar:
+        tar.add(source_dir / "shotdetail_2000.csv", arcname="shotdetail_2000.csv")
+    requested_urls = []
+
+    def copy_archive(url, filename=None):
+        requested_urls.append(url)
+        shutil.copy(archive, filename)
+
+    monkeypatch.setattr(urllib.request, "urlretrieve", copy_archive)
+    return requested_urls
+
+
+def test_download_season_downloads_and_extracts(tmp_path, fake_download):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+
+    path = data.download_season(2000, data_dir=data_dir)
+
+    assert fake_download == [data.DATA_URL.format(year=2000)]
+    assert path == data_dir / "shotdetail_2000.csv"
+    assert path.read_text() == FIXTURE.read_text()
+
+
+def test_download_season_creates_data_dir(tmp_path, fake_download):
+    data_dir = tmp_path / "new"
+
+    path = data.download_season(2000, data_dir=data_dir)
+
+    assert data_dir.is_dir()
+    assert path.read_text() == FIXTURE.read_text()
