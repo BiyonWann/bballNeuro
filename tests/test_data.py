@@ -374,3 +374,33 @@ def test_split_different_seed():
     _, second = data.split_by_game(game_shots(20), seed=1)
 
     assert set(first["GAME_ID"]) != set(second["GAME_ID"])
+
+
+def test_sample_shots_size():
+    sample = data.sample_shots(game_shots(20), n=10, seed=0)
+
+    assert len(sample) == 10
+    assert list(sample.index) == list(range(10))
+    assert sample["shot_id"].nunique() == 10
+
+
+def test_sample_shots_n_too_large():
+    sample = data.sample_shots(game_shots(20), n=100, seed=0)
+
+    assert list(sample.index) == list(range(60))
+    assert sorted(sample["shot_id"]) == list(range(60))
+
+
+def test_sample_shots_n_equal():
+    sample = data.sample_shots(game_shots(20), n=60, seed=0)
+
+    assert sorted(sample["shot_id"]) == list(range(60))
+
+
+def test_sample_shots_seed():
+    first = data.sample_shots(game_shots(20), n=10, seed=0)
+    second = data.sample_shots(game_shots(20), n=10, seed=0)
+    other = data.sample_shots(game_shots(20), n=10, seed=1)
+
+    assert list(first["shot_id"]) == list(second["shot_id"])
+    assert list(first["shot_id"]) != list(other["shot_id"])
