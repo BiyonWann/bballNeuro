@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from threept.network import find_winner, init_weights
+from threept.network import find_winner, init_weights, train
 
 
 def test_find_winner_picks_closest_cell():
@@ -95,3 +95,12 @@ def test_init_weights_too_many_cells_raises():
 
     with pytest.raises(ValueError):
         init_weights(inputs, 4, seed=0)
+
+
+def test_train_single_update_moves_only_winner():
+    inputs = np.array([[2.0, 4.0]])
+    initial = np.array([[0.0, 0.0], [10.0, 10.0]])
+
+    weights = train(inputs, n_cells=2, epochs=1, learning_rate=0.5, initial_weights=initial)
+
+    assert np.array_equal(weights, np.array([[1.0, 2.0], [10.0, 10.0]]))
