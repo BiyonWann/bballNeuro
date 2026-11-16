@@ -67,3 +67,9 @@ def assign(inputs: np.ndarray, weights: np.ndarray) -> np.ndarray:
     differences = inputs[:, np.newaxis, :] - weights[np.newaxis, :, :]
     distances = np.linalg.norm(differences, axis=2)
     return np.argmin(distances, axis=1)
+
+
+def count_wins(inputs: np.ndarray, weights: np.ndarray) -> np.ndarray:
+    """Return the number of shots each cell wins, shape (n_cells,)."""
+    labels = assign(inputs, weights)
+    return np.bincount(labels, minlength=len(weights))
