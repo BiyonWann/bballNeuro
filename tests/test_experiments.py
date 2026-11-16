@@ -279,3 +279,62 @@ def test_run_season_polar(big_train, big_test):
 def test_run_season_bad_kind(big_train, big_test):
     with pytest.raises(ValueError):
         experiments.run_season(big_train, big_test, kind="radial", n_cells=2)
+
+
+def test_run_baselines_rows(big_train, big_test):
+    frame = experiments.run_baselines(big_train, big_test, n_cells=2, seeds=(0, 1))
+
+    assert len(frame) == 4
+    assert list(frame["method"].value_counts().sort_index()) == [2, 2]
+    assert set(frame["method"]) == {"kmeans", "random"}
+    assert set(frame.columns) == {
+        "method",
+        "seed",
+        "accuracy",
+        "baseline",
+        "qe",
+        "ari",
+        "rim",
+        "mid_range",
+        "beyond_20",
+        "dead_cells",
+        "mean_arc_purity",
+    }
+
+
+def test_run_baselines_kmeans_values(big_train, big_test):
+    frame = experiments.run_baselines(big_train, big_test, n_cells=2, seeds=(0, 1))
+    kmeans_rows = frame[frame["method"] == "kmeans"]
+
+    np.testing.assert_allclose(kmeans_rows["accuracy"], 0.8)
+    np.testing.assert_allclose(kmeans_rows["ari"], 1.0)
+    np.testing.assert_allclose(kmeans_rows["qe"], 0.0, atol=1e-9)
+    np.testing.assert_array_equal(kmeans_rows["dead_cells"], 0)
+
+
+def test_run_baselines_random_is_untrained():
+    train = make_frame(
+        y_ft=[1, 5, 10, 25],
+        is_three=[False, False, False, True],
+        zones=[RIM_ZONE, RIM_ZONE, RIM_ZONE, ARC_ZONE],
+        games=[1, 2, 3, 4],
+    )
+    test = train.copy()
+    test["GAME_ID"] = [5, 6, 7, 8]
+
+    frame = experiments.run_baselines(train, test, n_cells=4, seeds=(0,))
+    random_row = frame[frame["method"] == "random"]
+
+    np.testing.assert_allclose(random_row["qe"], 0.0)
+
+
+def test_run_baselines_deterministic(big_train, big_test):
+    first = experiments.run_baselines(big_train, big_test, n_cells=2, seeds=(0, 1))
+    second = experiments.run_baselines(big_train, big_test, n_cells=2, seeds=(0, 1))
+
+    pd.testing.assert_frame_equal(first, second)
+
+
+def test_run_baselines_bad_kind(big_train, big_test):
+    with pytest.raises(ValueError):
+        experiments.run_baselines(big_train, big_test, kind="radial", n_cells=2)
