@@ -52,6 +52,19 @@ def test_evaluate_accuracy(small_train, small_test, rim_arc_weights):
     assert result["accuracy"] == pytest.approx(0.8)
 
 
+def test_evaluate_cell_types_come_from_train(small_train, rim_arc_weights):
+    test = make_frame(
+        y_ft=[1, 25, 25],
+        is_three=[False, False, False],
+        zones=[RIM_ZONE, ARC_ZONE, ARC_ZONE],
+        games=[4, 5, 5],
+    )
+
+    result = experiments.evaluate(rim_arc_weights, small_train, test, "cartesian")
+
+    assert result["accuracy"] == pytest.approx(1 / 3)
+
+
 def test_evaluate_baseline_twos_win(small_train, small_test, rim_arc_weights):
     result = experiments.evaluate(rim_arc_weights, small_train, small_test, "cartesian")
 
@@ -219,7 +232,8 @@ def test_run_season_weights(big_train, big_test):
     _, all_weights = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1, 2))
 
     assert len(all_weights) == 3
-    assert all_weights[0].shape == (2, 2)
+    for weights in all_weights:
+        assert weights.shape == (2, 2)
 
 
 def test_run_season_rows_match_evaluate(big_train, big_test):
@@ -258,7 +272,8 @@ def test_run_season_deterministic(big_train, big_test):
 def test_run_season_ignores_labels(big_train, big_test):
     scrambled = big_train.copy()
     scrambled["is_three"] = ~scrambled["is_three"]
-    scrambled["SHOT_ZONE_BASIC"] = scrambled["SHOT_ZONE_BASIC"].to_numpy()[::-1]
+    # Reversing puts the arc zone on the rim shots and the rim zone on the arc shots.
+    scrambled["SHOT_ZONE_BASIC"] = np.flip(scrambled["SHOT_ZONE_BASIC"].to_numpy())
 
     _, original_weights = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1))
     _, scrambled_weights = experiments.run_season(scrambled, big_test, n_cells=2, seeds=(0, 1))
@@ -366,7 +381,8 @@ def test_run_sequential_shapes(big_train, big_test):
     all_weights, frame = experiments.run_sequential(seasons, n_cells=2)
 
     assert len(all_weights) == 2
-    assert all_weights[0].shape == (2, 2)
+    for weights in all_weights:
+        assert weights.shape == (2, 2)
     assert list(frame["season"]) == ["a", "b"]
     assert list(frame.columns) == [
         "season",
@@ -406,7 +422,8 @@ def test_run_sequential_winner_moves_to_new_data(big_train, big_test, shifted_tr
     all_weights, frame = experiments.run_sequential(seasons, n_cells=2)
 
     changed_rows = (all_weights[0] != all_weights[1]).any(axis=1)
-    np.testing.assert_allclose(all_weights[1][changed_rows][0], [0.0, 10.0], atol=0.5)
+    moved_weights = all_weights[1][changed_rows]
+    np.testing.assert_allclose(moved_weights[0], [0.0, 10.0], atol=0.5)
     distances = np.linalg.norm(all_weights[1] - all_weights[0], axis=1)
     assert frame.loc[1, "mean_movement"] == pytest.approx(distances.mean())
 
