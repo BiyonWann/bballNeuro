@@ -92,3 +92,15 @@ def test_download_season_creates_data_dir(tmp_path, fake_download):
 
     assert data_dir.is_dir()
     assert path.read_text() == FIXTURE.read_text()
+
+
+def test_load_season_reads_five_columns(cached_dir, no_network):
+    shots = data.load_season(2000, data_dir=cached_dir)
+
+    assert list(shots.columns) == ["GAME_ID", "LOC_X", "LOC_Y", "SHOT_TYPE", "SHOT_ZONE_BASIC"]
+
+
+def test_load_season_row_count(cached_dir, no_network):
+    shots = data.load_season(2000, data_dir=cached_dir)
+
+    assert len(shots) == 40
