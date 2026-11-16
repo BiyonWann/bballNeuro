@@ -36,9 +36,11 @@ def train(
         raise ValueError(f"initial_weights has {len(initial_weights)} rows, expected {n_cells}")
     else:
         weights = np.array(initial_weights, dtype=float)
+    rng = np.random.default_rng(seed)
     for epoch in range(epochs):
         k = learning_rate / (1 + epoch)
-        for x in inputs:
+        order = rng.permutation(len(inputs))
+        for x in inputs[order]:
             winner = find_winner(x, weights)
             leak_losers(x, weights, winner, leak_rate * k)
             w = weights[winner]
