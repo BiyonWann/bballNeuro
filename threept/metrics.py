@@ -8,6 +8,7 @@ from sklearn.metrics import adjusted_rand_score
 RIM_MAX_FT = 8
 MID_MAX_FT = 20
 KINDS = ["cartesian", "polar"]
+# Same value as data.ARC_RADIUS_FT, repeated so metrics never imports data.
 ARC_RADIUS_FT = 23.75
 
 
