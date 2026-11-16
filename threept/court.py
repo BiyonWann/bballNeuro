@@ -53,3 +53,17 @@ def draw_half_court(ax=None):
     ax.set_ylim(BASELINE_Y, DRAWN_TOP_Y)
     ax.set_aspect("equal")
     return ax
+
+
+def _axis_points(start: float, stop: float, step: float) -> np.ndarray:
+    """Return points from `start` to `stop`, `step` apart, always ending exactly at `stop`."""
+    points = np.arange(start, stop, step)
+    return np.append(points, stop)
+
+
+def court_grid(step_ft: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
+    """Return (grid_x, grid_y) meshgrids covering the drawn court area."""
+    xs = _axis_points(-SIDELINE_X, SIDELINE_X, step_ft)
+    ys = _axis_points(BASELINE_Y, DRAWN_TOP_Y, step_ft)
+    grid_x, grid_y = np.meshgrid(xs, ys)
+    return grid_x, grid_y
