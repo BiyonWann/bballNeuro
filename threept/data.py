@@ -45,3 +45,11 @@ def load_season(start_year: int, data_dir: str | Path = "data") -> pd.DataFrame:
     shots = pd.read_csv(csv_path, usecols=SHOT_COLUMNS)
     # read_csv keeps file order, so reorder to the documented column order.
     return shots[SHOT_COLUMNS]
+
+
+def clean_shots(shots: pd.DataFrame) -> pd.DataFrame:
+    """Return only shots in the six official zones that have both coordinates."""
+    in_zone = shots["SHOT_ZONE_BASIC"].isin(ZONES)
+    has_location = shots["LOC_X"].notna() & shots["LOC_Y"].notna()
+    cleaned = shots[in_zone & has_location]
+    return cleaned.reset_index(drop=True)
