@@ -349,6 +349,98 @@ def test_heatmap_max_count_ignores_data_range():
         assert norm.vmax == 20
 
 
+def test_heatmap_max_count_keeps_counts_and_court():
+    x_ft, y_ft = four_shots()
+    figure, ax = plt.subplots()
+
+    court.plot_shot_heatmap(x_ft, y_ft, ax=ax, max_count=10)
+
+    assert heatmap_counts(ax).sum() == 4
+    assert count_three_point_lines(ax) == 1
+
+
+def three_shots_and_five_shots():
+    """Return two shot sets that both have a 3-shot bin at (0, 1), with different busiest bins."""
+    x_first, y_first = four_shots()
+    x_second = np.array([0.0, 0.0, 0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
+    y_second = np.array([1.0, 1.0, 1.0, 20.0, 20.0, 20.0, 20.0, 20.0])
+    return (x_first, y_first), (x_second, y_second)
+
+
+def three_shot_bin_color(ax):
+    """Render `ax` and return the RGBA face color of the bin holding 3 shots."""
+    ax.figure.canvas.draw()
+    counts = np.ma.asarray(ax.collections[0].get_array()).ravel()
+    colors = np.asarray(ax.collections[0].get_facecolor())
+    return colors[np.argmax(counts == 3)]
+
+
+def test_heatmap_shared_scale_gives_same_color_for_same_count():
+    first, second = three_shots_and_five_shots()
+    ax_first = court.plot_shot_heatmap(first[0], first[1], max_count=10)
+    ax_second = court.plot_shot_heatmap(second[0], second[1], max_count=10)
+
+    expected = matplotlib.colormaps["viridis"](np.log(3) / np.log(10))
+
+    assert three_shot_bin_color(ax_first) == pytest.approx(expected)
+    assert three_shot_bin_color(ax_second) == pytest.approx(expected)
+
+
+def test_heatmap_without_max_count_colors_differ_across_heatmaps():
+    first, second = three_shots_and_five_shots()
+    ax_first = court.plot_shot_heatmap(first[0], first[1])
+    ax_second = court.plot_shot_heatmap(second[0], second[1])
+
+    assert not np.allclose(three_shot_bin_color(ax_first), three_shot_bin_color(ax_second))
+
+
+def test_heatmap_default_scales_to_data():
+    x_ft, y_ft = four_shots()
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft)
+    ax.figure.canvas.draw()
+
+    norm = ax.collections[0].norm
+    assert norm.vmin == 1
+    assert norm.vmax == 3
+
+
+def test_heatmap_max_count_none_matches_default():
+    x_ft, y_ft = four_shots()
+    ax_default = court.plot_shot_heatmap(x_ft, y_ft)
+    ax_none = court.plot_shot_heatmap(x_ft, y_ft, max_count=None)
+
+    ax_default.figure.canvas.draw()
+    ax_none.figure.canvas.draw()
+
+    assert np.array_equal(heatmap_counts(ax_default), heatmap_counts(ax_none))
+    assert ax_none.collections[0].norm.vmin == ax_default.collections[0].norm.vmin
+    assert ax_none.collections[0].norm.vmax == ax_default.collections[0].norm.vmax
+    assert np.array_equal(
+        ax_none.collections[0].get_facecolor(), ax_default.collections[0].get_facecolor()
+    )
+
+
+def test_heatmap_max_count_one_draws():
+    x_ft, y_ft = four_shots()
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft, max_count=1)
+    ax.figure.canvas.draw()
+
+    norm = ax.collections[0].norm
+    assert norm.vmin == 1
+    assert norm.vmax == 1
+
+
+def test_heatmap_count_above_max_count_still_counted():
+    x_ft, y_ft = four_shots()
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft, max_count=2)
+    ax.figure.canvas.draw()
+
+    assert heatmap_counts(ax).sum() == 4
+
+
 def three_prototypes():
     """Return three prototypes in court feet: near the rim, left corner and top of the arc."""
     return np.array([[0.0, 3.0], [-22.0, 0.0], [0.0, 24.0]])
@@ -493,6 +585,7 @@ def test_plot_functions_do_not_mutate_inputs():
     original_paths = [season.copy() for season in paths]
 
     court.plot_shot_heatmap(x_ft, y_ft)
+    court.plot_shot_heatmap(x_ft, y_ft, max_count=10)
     court.plot_zone_map(grid_x, grid_y, grid_labels)
     court.plot_prototypes(prototypes)
     court.plot_prototype_paths(paths, SEASON_NAMES)
