@@ -25,6 +25,7 @@ CELL_COLORMAP = matplotlib.colormaps["tab20"]
 MAX_CELLS = 20
 # One bin per cell index: cell i falls between i - 0.5 and i + 0.5.
 CELL_NORM = BoundaryNorm(np.arange(MAX_CELLS + 1) - 0.5, MAX_CELLS)
+SEASON_MARKERS = ["o", "s", "^", "D", "v", "P"]
 
 
 def three_point_line(n_points: int = 200) -> tuple[np.ndarray, np.ndarray]:
@@ -124,4 +125,28 @@ def plot_prototypes(points_ft, ax=None, numbered=True):
         for cell in range(len(points_ft)):
             x, y = points_ft[cell]
             ax.text(x, y, str(cell), ha="center", va="center", fontsize=8, zorder=4)
+    return ax
+
+
+def plot_prototype_paths(path_points, season_names, ax=None):
+    """Draw each cell's path through the seasons and return the Axes.
+
+    Each cell gets one line in its cell color. Each season gets its own marker shape,
+    named in the legend. Draws no court lines.
+    """
+    if len(path_points) != len(season_names):
+        raise ValueError(f"{len(path_points)} seasons of points but {len(season_names)} names")
+    if ax is None:
+        figure, ax = plt.subplots()
+    seasons = np.stack(path_points)
+    colors = _cell_colors(seasons.shape[1])
+    for cell in range(seasons.shape[1]):
+        ax.plot(seasons[:, cell, 0], seasons[:, cell, 1], color=colors[cell], zorder=2)
+    for season in range(len(season_names)):
+        marker = SEASON_MARKERS[season % len(SEASON_MARKERS)]
+        xs = seasons[season, :, 0]
+        ys = seasons[season, :, 1]
+        label = season_names[season]
+        ax.scatter(xs, ys, c=colors, marker=marker, edgecolors=LINE_COLOR, label=label, zorder=3)
+    ax.legend()
     return ax
