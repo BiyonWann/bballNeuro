@@ -14,10 +14,10 @@ def find_winner(shot: np.ndarray, weights: np.ndarray) -> int:
 
 
 def init_weights(inputs: np.ndarray, n_cells: int, seed: int = 0) -> np.ndarray:
-    """Return copies of n_cells distinct, randomly chosen rows of inputs."""
+    """Return float copies of n_cells distinct, randomly chosen rows of inputs."""
     rng = np.random.default_rng(seed)
     rows = rng.choice(len(inputs), n_cells, replace=False)
-    return inputs[rows].copy()
+    return inputs[rows].astype(float)
 
 
 def train(
