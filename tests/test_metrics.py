@@ -114,3 +114,12 @@ def test_purity_label_out_of_range():
 
     with pytest.raises(ValueError):
         metrics.three_point_purity(labels, is_three, 2)
+
+
+def test_cell_shot_type_majority():
+    labels = np.array([0, 0, 0, 1, 1, 2, 2])
+    is_three = np.array([True, True, False, False, False, True, False])
+
+    cell_is_three = metrics.cell_shot_type(labels, is_three, 4)
+
+    np.testing.assert_array_equal(cell_is_three, [True, False, False, False])
