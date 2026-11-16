@@ -178,3 +178,104 @@ def test_evaluate_polar(small_train, small_test):
 def test_evaluate_bad_kind(small_train, small_test, rim_arc_weights):
     with pytest.raises(ValueError):
         experiments.evaluate(rim_arc_weights, small_train, small_test, "radial")
+
+
+def repeat_shots(shots, times):
+    """Return every shot repeated `times` times, keeping each game's shots together."""
+    repeated = shots.loc[shots.index.repeat(times)]
+    return repeated.reset_index(drop=True)
+
+
+@pytest.fixture
+def big_train(small_train):
+    return repeat_shots(small_train, 30)
+
+
+@pytest.fixture
+def big_test(small_test):
+    return repeat_shots(small_test, 30)
+
+
+def test_run_season_columns_and_rows(big_train, big_test):
+    frame, _ = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1, 2))
+
+    assert list(frame["seed"]) == [0, 1, 2]
+    assert set(frame.columns) == {
+        "seed",
+        "accuracy",
+        "baseline",
+        "qe",
+        "ari",
+        "rim",
+        "mid_range",
+        "beyond_20",
+        "dead_cells",
+        "mean_arc_purity",
+        "kmeans_gap",
+    }
+
+
+def test_run_season_weights(big_train, big_test):
+    _, all_weights = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1, 2))
+
+    assert len(all_weights) == 3
+    assert all_weights[0].shape == (2, 2)
+
+
+def test_run_season_rows_match_evaluate(big_train, big_test):
+    frame, all_weights = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1, 2))
+
+    for row, weights in enumerate(all_weights):
+        expected = experiments.evaluate(weights, big_train, big_test, "cartesian")
+        for key, value in expected.items():
+            assert frame.loc[row, key] == pytest.approx(value, nan_ok=True)
+
+
+def test_run_season_separable_values(big_train, big_test):
+    frame, _ = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1, 2))
+
+    np.testing.assert_allclose(frame["accuracy"], 0.8)
+    np.testing.assert_allclose(frame["ari"], 1.0)
+    np.testing.assert_allclose(frame["rim"], 0.4)
+    np.testing.assert_allclose(frame["beyond_20"], 0.6)
+    np.testing.assert_array_equal(frame["dead_cells"], 0)
+
+
+def test_run_season_kmeans_gap_small(big_train, big_test):
+    frame, _ = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1, 2))
+
+    assert (frame["kmeans_gap"] < 0.5).all()
+
+
+def test_run_season_deterministic(big_train, big_test):
+    first, first_weights = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1))
+    second, second_weights = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1))
+
+    pd.testing.assert_frame_equal(first, second)
+    np.testing.assert_array_equal(first_weights, second_weights)
+
+
+def test_run_season_ignores_labels(big_train, big_test):
+    scrambled = big_train.copy()
+    scrambled["is_three"] = ~scrambled["is_three"]
+    scrambled["SHOT_ZONE_BASIC"] = scrambled["SHOT_ZONE_BASIC"].to_numpy()[::-1]
+
+    _, original_weights = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1))
+    _, scrambled_weights = experiments.run_season(scrambled, big_test, n_cells=2, seeds=(0, 1))
+
+    np.testing.assert_array_equal(original_weights, scrambled_weights)
+
+
+def test_run_season_polar(big_train, big_test):
+    frame, all_weights = experiments.run_season(
+        big_train, big_test, kind="polar", n_cells=2, seeds=(0, 1, 2)
+    )
+
+    assert len(frame) == 3
+    assert all_weights[0].shape == (2, 2)
+    np.testing.assert_allclose(frame["accuracy"], 0.8)
+
+
+def test_run_season_bad_kind(big_train, big_test):
+    with pytest.raises(ValueError):
+        experiments.run_season(big_train, big_test, kind="radial", n_cells=2)
