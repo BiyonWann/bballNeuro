@@ -272,3 +272,21 @@ def test_zone_confusion_accepts_series():
 
     assert table.loc[0].tolist() == [0, 1, 1]
     assert table.loc[1].tolist() == [1, 2, 0]
+
+
+def test_shot_share_hand_case():
+    labels = np.array([0, 0, 0, 0, 1, 1, 2, 2, 2, 2])
+    distances = np.array([2.0, 15.0, 25.0])
+
+    shares = metrics.shot_share_by_group(labels, distances)
+
+    assert shares == pytest.approx({"rim": 0.4, "mid_range": 0.2, "beyond_20": 0.4})
+
+
+def test_shot_share_edges():
+    labels = np.array([0, 1, 2, 2])
+    distances = np.array([8.0, 20.0, 20.01])
+
+    shares = metrics.shot_share_by_group(labels, distances)
+
+    assert shares == pytest.approx({"rim": 0.0, "mid_range": 0.5, "beyond_20": 0.5})
