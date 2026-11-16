@@ -104,3 +104,12 @@ def test_train_single_update_moves_only_winner():
     weights = train(inputs, n_cells=2, epochs=1, learning_rate=0.5, initial_weights=initial)
 
     assert np.array_equal(weights, np.array([[1.0, 2.0], [10.0, 10.0]]))
+
+
+def test_train_one_epoch_visits_every_shot():
+    inputs = np.array([[0.0, 0.0], [10.0, 0.0]])
+    initial = np.array([[1.0, 0.0], [9.0, 0.0]])
+
+    weights = train(inputs, n_cells=2, epochs=1, learning_rate=0.5, initial_weights=initial)
+
+    assert np.array_equal(weights, np.array([[0.5, 0.0], [9.5, 0.0]]))
