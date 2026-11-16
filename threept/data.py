@@ -1,5 +1,7 @@
 """Load, clean and reshape NBA shot data into model inputs."""
 
+import tarfile
+import urllib.request
 from pathlib import Path
 
 import numpy as np
@@ -20,6 +22,16 @@ MAX_ANGLE = np.pi / 2 + 0.25
 
 
 def download_season(start_year: int, data_dir: str | Path = "data") -> Path:
-    """Return the path to a season's shot CSV."""
-    csv_path = Path(data_dir) / f"shotdetail_{start_year}.csv"
+    """Return the path to a season's shot CSV, downloading it only if it is not cached."""
+    data_dir = Path(data_dir)
+    csv_name = f"shotdetail_{start_year}.csv"
+    csv_path = data_dir / csv_name
+    if csv_path.exists():
+        return csv_path
+    data_dir.mkdir(parents=True, exist_ok=True)
+    archive_path = data_dir / f"shotdetail_{start_year}.tar.xz"
+    urllib.request.urlretrieve(DATA_URL.format(year=start_year), archive_path)
+    with tarfile.open(archive_path, "r:xz") as archive:
+        archive.extract(csv_name, path=data_dir, filter="data")
+    archive_path.unlink()
     return csv_path
