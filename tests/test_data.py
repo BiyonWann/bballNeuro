@@ -404,3 +404,38 @@ def test_sample_shots_seed():
 
     assert list(first["shot_id"]) == list(second["shot_id"])
     assert list(first["shot_id"]) != list(other["shot_id"])
+
+
+def test_prepare_season_runs_offline(cached_dir, no_network):
+    train, test = data.prepare_season(2000, seed=0, n_train=10, data_dir=cached_dir)
+
+    assert len(train) == 10
+    assert "Backcourt" not in set(train["SHOT_ZONE_BASIC"]) | set(test["SHOT_ZONE_BASIC"])
+    assert train["LOC_X"].notna().all()
+    for column in ["x_ft", "y_ft", "distance_ft", "angle", "arc_ft", "is_three"]:
+        assert column in train.columns
+        assert column in test.columns
+
+
+def test_prepare_season_test_is_whole_games(cached_dir, loaded_fixture):
+    clean = data.clean_shots(loaded_fixture)
+
+    train, test = data.prepare_season(2000, seed=0, n_train=10, data_dir=cached_dir)
+
+    assert set(train["GAME_ID"]) & set(test["GAME_ID"]) == set()
+    assert test["GAME_ID"].nunique() == 1
+    assert len(test) == clean["GAME_ID"].isin(set(test["GAME_ID"])).sum()
+
+
+def test_prepare_season_small_train(cached_dir, no_network):
+    train, test = data.prepare_season(2000, seed=0, n_train=20000, data_dir=cached_dir)
+
+    assert len(train) + len(test) == 38
+
+
+def test_prepare_season_same_seed(cached_dir, no_network):
+    first_train, first_test = data.prepare_season(2000, seed=0, n_train=10, data_dir=cached_dir)
+    second_train, second_test = data.prepare_season(2000, seed=0, n_train=10, data_dir=cached_dir)
+
+    pd.testing.assert_frame_equal(first_train, second_train)
+    pd.testing.assert_frame_equal(first_test, second_test)
