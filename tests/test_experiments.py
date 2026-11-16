@@ -112,3 +112,54 @@ def test_evaluate_dead_cells_use_train(small_train):
     result = experiments.evaluate(weights, small_train, test, "cartesian")
 
     assert result["dead_cells"] == 1
+
+
+def test_evaluate_keys(small_train, small_test, rim_arc_weights):
+    result = experiments.evaluate(rim_arc_weights, small_train, small_test, "cartesian")
+
+    assert set(result) == {
+        "accuracy",
+        "baseline",
+        "qe",
+        "ari",
+        "rim",
+        "mid_range",
+        "beyond_20",
+        "dead_cells",
+        "mean_arc_purity",
+    }
+
+
+def test_evaluate_mean_arc_purity(small_train, small_test, rim_arc_weights):
+    result = experiments.evaluate(rim_arc_weights, small_train, small_test, "cartesian")
+
+    assert result["mean_arc_purity"] == pytest.approx(2 / 3)
+
+
+def test_evaluate_arc_purity_uses_test(small_train, rim_arc_weights):
+    test = make_frame(
+        y_ft=[1, 25, 25],
+        is_three=[False, True, True],
+        zones=[RIM_ZONE, ARC_ZONE, ARC_ZONE],
+        games=[4, 5, 5],
+    )
+
+    result = experiments.evaluate(rim_arc_weights, small_train, test, "cartesian")
+
+    assert result["mean_arc_purity"] == pytest.approx(1.0)
+
+
+def test_evaluate_arc_purity_skips_empty_cell(small_train, small_test):
+    weights = np.array([[0.0, 1.0], [0.0, 25.0], [0.0, 26.0]])
+
+    result = experiments.evaluate(weights, small_train, small_test, "cartesian")
+
+    assert result["mean_arc_purity"] == pytest.approx(2 / 3)
+
+
+def test_evaluate_arc_purity_no_arc_cells(small_train, small_test):
+    weights = np.array([[0.0, 1.0], [0.0, 5.0]])
+
+    result = experiments.evaluate(weights, small_train, small_test, "cartesian")
+
+    assert np.isnan(result["mean_arc_purity"])
