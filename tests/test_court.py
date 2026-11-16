@@ -15,6 +15,18 @@ def close_figures():
     plt.close("all")
 
 
+def count_three_point_lines(ax):
+    """Return how many lines on `ax` trace exactly the 3-point line."""
+    line_xs, line_ys = court.three_point_line()
+    count = 0
+    for line in ax.lines:
+        xs = np.asarray(line.get_xdata(), dtype=float)
+        ys = np.asarray(line.get_ydata(), dtype=float)
+        if xs.shape == line_xs.shape and np.allclose(xs, line_xs) and np.allclose(ys, line_ys):
+            count = count + 1
+    return count
+
+
 def test_constants_match_interface():
     assert court.BASELINE_Y == -5.25
     assert court.HALF_COURT_Y == 41.75
@@ -96,3 +108,26 @@ def test_n_points_sets_arc_resolution(n_points, expected_length):
 
     assert len(xs) == expected_length
     assert len(ys) == expected_length
+
+
+def test_draw_half_court_creates_axes():
+    ax = court.draw_half_court()
+
+    assert isinstance(ax, plt.Axes)
+
+
+def test_draw_half_court_uses_given_axes():
+    figure, ax = plt.subplots()
+
+    result = court.draw_half_court(ax)
+
+    assert result is ax
+    assert count_three_point_lines(ax) == 1
+
+
+def test_draw_half_court_limits_and_aspect():
+    ax = court.draw_half_court()
+
+    assert ax.get_xlim() == pytest.approx((-25, 25))
+    assert ax.get_ylim() == pytest.approx((-5.25, 35))
+    assert ax.get_aspect() == 1.0
