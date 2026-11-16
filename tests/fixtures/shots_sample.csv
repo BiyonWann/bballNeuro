@@ -1,0 +1,41 @@
+GAME_ID,EVENT_TYPE,SHOT_TYPE,SHOT_ZONE_BASIC,SHOT_DISTANCE,LOC_X,LOC_Y
+22400014,Made Shot,2PT Field Goal,Mid-Range,21,-109,180
+22400014,Missed Shot,2PT Field Goal,Restricted Area,2,-7,19
+22400014,Missed Shot,3PT Field Goal,Above the Break 3,24,-55,243
+22400014,Made Shot,2PT Field Goal,Restricted Area,0,9,-2
+22400014,Made Shot,2PT Field Goal,In The Paint (Non-RA),8,5,80
+22400014,Missed Shot,3PT Field Goal,Left Corner 3,23,-230,-26
+22400014,Missed Shot,3PT Field Goal,Left Corner 3,22,-222,-17
+22400014,Missed Shot,2PT Field Goal,Restricted Area,2,26,-10
+22400014,Made Shot,3PT Field Goal,Right Corner 3,22,223,11
+22400014,Made Shot,3PT Field Goal,Right Corner 3,24,232,63
+22400014,Missed Shot,3PT Field Goal,Backcourt,51,200,472
+22400001,Missed Shot,3PT Field Goal,Above the Break 3,26,-168,205
+22400001,Missed Shot,2PT Field Goal,Mid-Range,13,,-1
+22400001,Made Shot,3PT Field Goal,Above the Break 3,25,157,203
+22400001,Made Shot,2PT Field Goal,Restricted Area,2,-25,8
+22400001,Made Shot,2PT Field Goal,Restricted Area,1,10,13
+22400001,Missed Shot,2PT Field Goal,In The Paint (Non-RA),12,53,111
+22400001,Made Shot,3PT Field Goal,Left Corner 3,23,-237,26
+22400001,Missed Shot,3PT Field Goal,Right Corner 3,24,236,72
+22400001,Made Shot,3PT Field Goal,Right Corner 3,24,230,83
+22400001,Made Shot,3PT Field Goal,Left Corner 3,22,-228,17
+22400002,Made Shot,2PT Field Goal,Mid-Range,20,-124,167
+22400002,Missed Shot,3PT Field Goal,Above the Break 3,26,157,212
+22400002,Missed Shot,2PT Field Goal,In The Paint (Non-RA),4,45,-1
+22400002,Made Shot,2PT Field Goal,Restricted Area,3,37,12
+22400002,Missed Shot,3PT Field Goal,Above the Break 3,26,163,211
+22400002,Made Shot,3PT Field Goal,Right Corner 3,23,230,23
+22400002,Made Shot,2PT Field Goal,Restricted Area,2,25,2
+22400002,Missed Shot,3PT Field Goal,Right Corner 3,23,234,31
+22400002,Missed Shot,3PT Field Goal,Left Corner 3,23,-233,-6
+22400002,Missed Shot,3PT Field Goal,Left Corner 3,23,-234,50
+20000001,Missed Shot,2PT Field Goal,In The Paint (Non-RA),6,-58,28
+20000001,Missed Shot,2PT Field Goal,Mid-Range,15,-151,13
+20000001,Missed Shot,2PT Field Goal,Mid-Range,13,-101,95
+20000001,Missed Shot,2PT Field Goal,Restricted Area,0,0,0
+20000001,Made Shot,3PT Field Goal,Right Corner 3,24,228,78
+20000001,Missed Shot,3PT Field Goal,Above the Break 3,24,106,222
+20000001,Made Shot,2PT Field Goal,Restricted Area,0,0,0
+20000001,Missed Shot,3PT Field Goal,Right Corner 3,23,228,45
+20000001,Made Shot,3PT Field Goal,Left Corner 3,24,-238,40
