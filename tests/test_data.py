@@ -473,3 +473,21 @@ def test_prepare_season_samples_with_seed(cached_dir, no_network):
     train, _ = data.prepare_season(2000, seed=1, n_train=10, data_dir=cached_dir)
 
     pd.testing.assert_frame_equal(train, expected)
+
+
+def test_prepare_season_test_fraction(tmp_path, no_network):
+    game_ids = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6]
+    shots = pd.DataFrame(
+        {
+            "GAME_ID": game_ids,
+            "LOC_X": [10] * 12,
+            "LOC_Y": [150] * 12,
+            "SHOT_TYPE": ["2PT Field Goal"] * 12,
+            "SHOT_ZONE_BASIC": ["Mid-Range"] * 12,
+        }
+    )
+    shots.to_csv(tmp_path / "shotdetail_2000.csv", index=False)
+
+    _, test = data.prepare_season(2000, seed=0, data_dir=tmp_path)
+
+    assert test["GAME_ID"].nunique() == 1
