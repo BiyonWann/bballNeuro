@@ -290,3 +290,26 @@ def test_shot_share_edges():
     shares = metrics.shot_share_by_group(labels, distances)
 
     assert shares == pytest.approx({"rim": 0.0, "mid_range": 0.5, "beyond_20": 0.5})
+
+
+def test_kmeans_two_clusters():
+    rng = np.random.default_rng(0)
+    near_rim = rng.normal(0.0, 0.1, size=(20, 2))
+    far_out = rng.normal(30.0, 0.1, size=(20, 2))
+    inputs = np.vstack([near_rim, far_out])
+
+    centers = metrics.kmeans_weights(inputs, 2, seed=0)
+
+    assert centers.shape == (2, 2)
+    sorted_centers = centers[np.argsort(centers[:, 0])]
+    np.testing.assert_allclose(sorted_centers, [[0.0, 0.0], [30.0, 30.0]], atol=0.5)
+
+
+def test_kmeans_same_seed_same_result():
+    rng = np.random.default_rng(0)
+    inputs = rng.normal(0.0, 5.0, size=(60, 2))
+
+    first = metrics.kmeans_weights(inputs, 3, seed=1)
+    second = metrics.kmeans_weights(inputs, 3, seed=1)
+
+    np.testing.assert_array_equal(first, second)
