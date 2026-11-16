@@ -5,6 +5,9 @@ import pandas as pd
 
 from threept import data, metrics, network
 
+CORNER_MIN_ANGLE = 1.2
+TOP_MAX_ANGLE = 0.4
+
 
 def _line_recovery(weights: np.ndarray, train: pd.DataFrame, test: pd.DataFrame, kind: str) -> dict:
     """Return accuracy and the majority baseline, with cell types learned from train shots."""
@@ -119,3 +122,28 @@ def run_sequential(
         all_weights.append(weights)
         previous = weights
     return all_weights, pd.DataFrame(rows)
+
+
+def _mean_or_nan(values: np.ndarray) -> float:
+    """Return the mean of values, or NaN when there are none."""
+    if len(values) == 0:
+        return float("nan")
+    return float(values.mean())
+
+
+def shape_test(weights: np.ndarray, kind: str) -> dict:
+    """Return the mean distance and count of corner cells and top-of-the-arc cells.
+
+    Only cells beyond 20 ft count. A mean is NaN when its group is empty.
+    """
+    distances = metrics.prototype_distances(weights, kind)
+    angles = np.abs(metrics.prototype_angles(weights, kind))
+    is_arc = distances > metrics.MID_MAX_FT
+    is_corner = is_arc & (angles >= CORNER_MIN_ANGLE)
+    is_top = is_arc & (angles <= TOP_MAX_ANGLE)
+    return {
+        "corner_mean_ft": _mean_or_nan(distances[is_corner]),
+        "top_mean_ft": _mean_or_nan(distances[is_top]),
+        "n_corner": int(is_corner.sum()),
+        "n_top": int(is_top.sum()),
+    }
