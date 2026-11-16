@@ -208,3 +208,13 @@ def test_train_without_leak_leaves_dead_cell_fixed():
     weights = train(inputs, n_cells=2, initial_weights=initial, leak_rate=0.0)
 
     assert np.array_equal(weights[1], np.array([100.0, 100.0]))
+
+
+def test_train_shuffle_depends_on_seed():
+    inputs = np.array([[float(i), 0.0] for i in range(10)])
+    initial = np.array([[5.0, 0.0]])
+
+    first = train(inputs, n_cells=1, epochs=1, learning_rate=0.5, seed=0, initial_weights=initial)
+    second = train(inputs, n_cells=1, epochs=1, learning_rate=0.5, seed=1, initial_weights=initial)
+
+    assert not np.array_equal(first, second)
