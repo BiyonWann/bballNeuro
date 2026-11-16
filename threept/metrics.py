@@ -28,3 +28,15 @@ def prototype_angles(weights: np.ndarray, kind: str) -> np.ndarray:
     if kind == "polar":
         return weights[:, 1] / ARC_RADIUS_FT
     return np.arctan2(weights[:, 0], weights[:, 1])
+
+
+def cell_allocation(distances: np.ndarray) -> dict:
+    """Return how many cells sit at the rim, in the mid-range and beyond 20 ft."""
+    is_rim = distances < RIM_MAX_FT
+    is_beyond = distances > MID_MAX_FT
+    is_mid = ~is_rim & ~is_beyond
+    return {
+        "rim": int(is_rim.sum()),
+        "mid_range": int(is_mid.sum()),
+        "beyond_20": int(is_beyond.sum()),
+    }
