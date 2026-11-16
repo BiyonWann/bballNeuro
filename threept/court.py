@@ -1,6 +1,8 @@
 """Half-court drawing and court plots. All lengths are in feet with the basket at (0, 0)."""
 
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import Arc, Circle, Rectangle
 
 BASELINE_Y = -5.25
 HALF_COURT_Y = 41.75
@@ -12,6 +14,9 @@ PAINT_HALF_WIDTH = 8
 FREE_THROW_Y = 13.75
 RESTRICTED_RADIUS = 4
 RIM_RADIUS = 0.75
+FREE_THROW_RADIUS = 6
+DRAWN_TOP_Y = 35
+LINE_COLOR = "black"
 
 
 def three_point_line(n_points: int = 200) -> tuple[np.ndarray, np.ndarray]:
@@ -26,3 +31,25 @@ def three_point_line(n_points: int = 200) -> tuple[np.ndarray, np.ndarray]:
     xs = np.concatenate([[-CORNER_THREE_X], arc_xs, [CORNER_THREE_X]])
     ys = np.concatenate([[BASELINE_Y], arc_ys, [BASELINE_Y]])
     return xs, ys
+
+
+def draw_half_court(ax=None):
+    """Draw the half-court lines with equal aspect and return the Axes."""
+    if ax is None:
+        figure, ax = plt.subplots()
+    paint_width = 2 * PAINT_HALF_WIDTH
+    paint_height = FREE_THROW_Y - BASELINE_Y
+    paint = Rectangle((-PAINT_HALF_WIDTH, BASELINE_Y), paint_width, paint_height, fill=False)
+    free_throw_circle = Circle((0, FREE_THROW_Y), FREE_THROW_RADIUS, fill=False)
+    restricted_diameter = 2 * RESTRICTED_RADIUS
+    restricted_area = Arc((0, 0), restricted_diameter, restricted_diameter, theta2=180)
+    rim = Circle((0, 0), RIM_RADIUS, fill=False)
+    for shape in [paint, free_throw_circle, restricted_area, rim]:
+        shape.set_edgecolor(LINE_COLOR)
+        ax.add_patch(shape)
+    line_xs, line_ys = three_point_line()
+    ax.plot(line_xs, line_ys, color=LINE_COLOR)
+    ax.set_xlim(-SIDELINE_X, SIDELINE_X)
+    ax.set_ylim(BASELINE_Y, DRAWN_TOP_Y)
+    ax.set_aspect("equal")
+    return ax
