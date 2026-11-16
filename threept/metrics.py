@@ -59,12 +59,17 @@ def shot_share_by_group(labels: np.ndarray, distances: np.ndarray) -> dict:
     return shares
 
 
+def _check_labels(labels: np.ndarray, n_cells: int) -> None:
+    """Raise ValueError unless every label is a cell from 0 to n_cells - 1."""
+    if labels.min() < 0 or labels.max() >= n_cells:
+        raise ValueError(f"labels must be between 0 and {n_cells - 1}")
+
+
 def _shot_counts(labels: np.ndarray, is_three: np.ndarray, n_cells: int) -> tuple:
     """Return (shots, threes) won by each cell, checking labels are valid cells."""
     labels = np.asarray(labels)
     is_three = np.asarray(is_three)
-    if labels.min() < 0 or labels.max() >= n_cells:
-        raise ValueError(f"labels must be between 0 and {n_cells - 1}")
+    _check_labels(labels, n_cells)
     shots = np.zeros(n_cells)
     threes = np.zeros(n_cells)
     for cell in range(n_cells):
@@ -128,6 +133,7 @@ def zone_confusion(
     # Plain arrays, so a Series index from the test split cannot misalign the rows.
     labels = np.asarray(labels)
     zones = np.asarray(zones)
+    _check_labels(labels, n_cells)
     if not np.isin(zones, zone_names).all():
         raise ValueError("zones contains a value that is not in zone_names")
     counts = pd.crosstab(labels, zones, rownames=["cell"], colnames=["zone"])
