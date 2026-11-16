@@ -103,3 +103,25 @@ def plot_shot_heatmap(x_ft, y_ft, ax=None, bins=60):
     ax.hist2d(x_ft, y_ft, bins=bins, range=court_range, norm=LogNorm(), cmap="viridis")
     draw_half_court(ax)
     return ax
+
+
+def _cell_colors(n_cells: int) -> np.ndarray:
+    """Return the RGBA color of cells 0 .. n_cells - 1, shape (n_cells, 4)."""
+    return CELL_COLORMAP(np.arange(n_cells))
+
+
+def plot_prototypes(points_ft, ax=None, numbered=True):
+    """Draw one marker per prototype in its cell color and return the Axes.
+
+    Draws no court lines, so it can be layered on a court or on other seeds.
+    """
+    points_ft = np.asarray(points_ft)
+    if ax is None:
+        figure, ax = plt.subplots()
+    colors = _cell_colors(len(points_ft))
+    ax.scatter(points_ft[:, 0], points_ft[:, 1], c=colors, s=150, edgecolors=LINE_COLOR, zorder=3)
+    if numbered:
+        for cell in range(len(points_ft)):
+            x, y = points_ft[cell]
+            ax.text(x, y, str(cell), ha="center", va="center", fontsize=8, zorder=4)
+    return ax
