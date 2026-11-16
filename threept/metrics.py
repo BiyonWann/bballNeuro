@@ -149,3 +149,10 @@ def prototype_gap(weights: np.ndarray, reference: np.ndarray) -> float:
         distances[row, :] = np.inf
         distances[:, column] = np.inf
     return float(np.mean(matched_distances))
+
+
+def prototype_movement(before: np.ndarray, after: np.ndarray) -> np.ndarray:
+    """Return how far each cell's prototype moved, matching cells by index."""
+    if before.shape != after.shape:
+        raise ValueError("before and after must have the same shape")
+    return np.linalg.norm(after - before, axis=1)
