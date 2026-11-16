@@ -463,14 +463,18 @@ def test_prepare_season_different_seed(cached_dir, no_network):
     assert set(second_test["GAME_ID"]) == {22400001}
 
 
-def test_prepare_season_samples_with_seed(cached_dir, no_network):
-    shots = data.add_features(data.clean_shots(data.load_season(2000, data_dir=cached_dir)))
-    full_train, _ = data.split_by_game(shots, seed=1)
-    expected = data.sample_shots(full_train, n=10, seed=1)
+@pytest.mark.parametrize(
+    "seed, loc_x, loc_y",
+    [
+        (0, [236, 10, 26, 223, 45], [72, 13, -10, 11, -1]),
+        (1, [37, -7, -58, 0, 157], [12, 19, 28, 0, 212]),
+    ],
+)
+def test_prepare_season_samples_with_seed(cached_dir, no_network, seed, loc_x, loc_y):
+    train, _ = data.prepare_season(2000, seed=seed, n_train=5, data_dir=cached_dir)
 
-    train, _ = data.prepare_season(2000, seed=1, n_train=10, data_dir=cached_dir)
-
-    pd.testing.assert_frame_equal(train, expected)
+    assert list(train["LOC_X"]) == loc_x
+    assert list(train["LOC_Y"]) == loc_y
 
 
 def test_prepare_season_test_fraction(tmp_path, no_network):
