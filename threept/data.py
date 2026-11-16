@@ -127,3 +127,15 @@ def get_inputs(shots: pd.DataFrame, kind: str = "cartesian") -> np.ndarray:
     """Return the (n, 2) model inputs, built from the x_ft and y_ft columns only."""
     points_ft = shots[["x_ft", "y_ft"]].to_numpy(dtype=float)
     return court_to_inputs(points_ft, kind)
+
+
+def prepare_season(
+    start_year: int, seed: int = 0, n_train: int = 20000, data_dir: str | Path = "data"
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return (train, test): n_train sampled shots from training games, and every test-game shot."""
+    shots = load_season(start_year, data_dir)
+    shots = clean_shots(shots)
+    shots = add_features(shots)
+    train, test = split_by_game(shots, seed=seed)
+    train = sample_shots(train, n=n_train, seed=seed)
+    return train, test
