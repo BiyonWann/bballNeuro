@@ -40,6 +40,20 @@ def train(
         k = learning_rate / (1 + epoch)
         for x in inputs:
             winner = find_winner(x, weights)
+            leak_losers(x, weights, winner, leak_rate * k)
             w = weights[winner]
             weights[winner] = w + k * (x - w)
     return weights
+
+
+def leak_losers(x: np.ndarray, weights: np.ndarray, winner: int, leak_k: float) -> None:
+    """Move every cell except the winner toward the shot, in place, by leak_k * (x - w).
+
+    Does nothing when leak_k is 0, which is plain winner-take-all learning.
+    """
+    if leak_k == 0:
+        return
+    losers = np.arange(len(weights)) != winner
+    w = weights[losers]
+    # (n_losers, 2) - (2,)
+    weights[losers] = w + leak_k * (x - w)
