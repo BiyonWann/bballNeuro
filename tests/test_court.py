@@ -155,3 +155,44 @@ def test_court_grid_coarse_step_reaches_edges():
 
     assert grid_x.max() == pytest.approx(25)
     assert grid_y.max() == pytest.approx(35)
+
+
+def small_grid():
+    """Return a 2 x 2 grid of court points."""
+    return np.meshgrid([-10.0, 10.0], [0.0, 20.0])
+
+
+def test_zone_map_accepts_grid_shaped_labels():
+    grid_x, grid_y = court.court_grid(step_ft=5)
+    grid_labels = (grid_x >= 0).astype(int)
+
+    ax = court.plot_zone_map(grid_x, grid_y, grid_labels)
+
+    assert isinstance(ax, plt.Axes)
+
+
+def test_zone_map_plots_label_array():
+    grid_x, grid_y = small_grid()
+    grid_labels = np.array([[0, 1], [2, 3]])
+
+    ax = court.plot_zone_map(grid_x, grid_y, grid_labels)
+
+    plotted = np.asarray(ax.collections[0].get_array()).ravel()
+    assert plotted.tolist() == [0, 1, 2, 3]
+
+
+def test_zone_map_shape_mismatch_raises():
+    grid_x, grid_y = small_grid()
+
+    with pytest.raises(ValueError):
+        court.plot_zone_map(grid_x, grid_y, np.array([0, 1, 2]))
+
+
+def test_zone_map_draws_court_lines():
+    grid_x, grid_y = small_grid()
+    figure, ax = plt.subplots()
+
+    result = court.plot_zone_map(grid_x, grid_y, np.array([[0, 1], [2, 3]]), ax=ax)
+
+    assert result is ax
+    assert count_three_point_lines(ax) == 1
