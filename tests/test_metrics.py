@@ -311,8 +311,10 @@ def test_kmeans_same_seed_same_result():
 
     first = metrics.kmeans_weights(inputs, 3, seed=1)
     second = metrics.kmeans_weights(inputs, 3, seed=1)
+    other_seed = metrics.kmeans_weights(inputs, 3, seed=2)
 
     np.testing.assert_array_equal(first, second)
+    assert not np.array_equal(first, other_seed)
 
 
 def test_prototype_gap_shuffled_is_zero():
