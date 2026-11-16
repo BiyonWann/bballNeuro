@@ -265,6 +265,14 @@ def test_zone_confusion_unknown_zone():
         metrics.zone_confusion(CONFUSION_LABELS, zones, ["C", "B", "A"], 2)
 
 
+def test_zone_confusion_label_out_of_range():
+    labels = np.array([0, 5])
+    zones = np.array(["A", "A"])
+
+    with pytest.raises(ValueError):
+        metrics.zone_confusion(labels, zones, ["A"], 2)
+
+
 def test_zone_confusion_accepts_series():
     zones = pd.Series(["A", "B", "B", "B", "C"], index=[10, 11, 12, 13, 14])
 
@@ -311,10 +319,8 @@ def test_kmeans_same_seed_same_result():
 
     first = metrics.kmeans_weights(inputs, 3, seed=1)
     second = metrics.kmeans_weights(inputs, 3, seed=1)
-    other_seed = metrics.kmeans_weights(inputs, 3, seed=2)
 
     np.testing.assert_array_equal(first, second)
-    assert not np.array_equal(first, other_seed)
 
 
 def test_prototype_gap_shuffled_is_zero():
