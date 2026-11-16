@@ -441,6 +441,14 @@ def test_heatmap_count_above_max_count_still_counted():
     assert heatmap_counts(ax).sum() == 4
 
 
+@pytest.mark.parametrize("max_count", [0, 0.5, -3])
+def test_heatmap_max_count_below_one_raises(max_count):
+    x_ft, y_ft = four_shots()
+
+    with pytest.raises(ValueError):
+        court.plot_shot_heatmap(x_ft, y_ft, max_count=max_count)
+
+
 def three_prototypes():
     """Return three prototypes in court feet: near the rim, left corner and top of the arc."""
     return np.array([[0.0, 3.0], [-22.0, 0.0], [0.0, 24.0]])
