@@ -142,6 +142,22 @@ def test_clean_shots_keeps_six_zones(loaded_fixture):
     assert len(shots) == 38
 
 
+def test_clean_shots_drops_unknown_zone():
+    shots = pd.DataFrame(
+        {
+            "GAME_ID": [1, 1],
+            "LOC_X": [10.0, 20.0],
+            "LOC_Y": [50.0, 60.0],
+            "SHOT_TYPE": ["2PT Field Goal", "2PT Field Goal"],
+            "SHOT_ZONE_BASIC": ["Mid-Range", "Unknown"],
+        }
+    )
+
+    cleaned = data.clean_shots(shots)
+
+    assert list(cleaned["SHOT_ZONE_BASIC"]) == ["Mid-Range"]
+
+
 def test_clean_shots_resets_index(loaded_fixture):
     shots = data.clean_shots(loaded_fixture)
 
