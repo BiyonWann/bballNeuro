@@ -123,3 +123,24 @@ def test_cell_shot_type_majority():
     cell_is_three = metrics.cell_shot_type(labels, is_three, 4)
 
     np.testing.assert_array_equal(cell_is_three, [True, False, False, False])
+
+
+def test_line_recovery_hand_case():
+    cell_is_three = np.array([False, True])
+    test_labels = np.array([0, 1, 1, 0, 1])
+    test_is_three = np.array([False, True, False, False, True])
+
+    accuracy = metrics.line_recovery_accuracy(cell_is_three, test_labels, test_is_three)
+
+    assert isinstance(accuracy, float)
+    assert accuracy == pytest.approx(0.8)
+
+
+def test_line_recovery_perfect():
+    cell_is_three = np.array([False, True])
+    test_labels = np.array([0, 1, 1, 0, 1])
+    test_is_three = np.array([False, True, True, False, True])
+
+    accuracy = metrics.line_recovery_accuracy(cell_is_three, test_labels, test_is_three)
+
+    assert accuracy == pytest.approx(1.0)
