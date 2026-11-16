@@ -196,3 +196,44 @@ def test_zone_map_draws_court_lines():
 
     assert result is ax
     assert count_three_point_lines(ax) == 1
+
+
+def drawn_zone_colors(ax):
+    """Render `ax` and return the RGBA face color of each zone-map grid point, row by row."""
+    ax.figure.canvas.draw()
+    return np.asarray(ax.collections[0].get_facecolor())
+
+
+def test_cell_color_is_tab20_index():
+    grid_x, grid_y = small_grid()
+    ax = court.plot_zone_map(grid_x, grid_y, np.array([[0, 1], [2, 3]]))
+
+    colors = drawn_zone_colors(ax)
+
+    tab20 = matplotlib.colormaps["tab20"]
+    for cell in [0, 1, 2, 3]:
+        assert colors[cell] == pytest.approx(np.array(tab20(cell)))
+
+
+def test_cell_color_same_across_label_sets():
+    grid_x, grid_y = small_grid()
+    ax_few = court.plot_zone_map(grid_x, grid_y, np.array([[3, 4], [4, 3]]))
+    grid_x6, grid_y6 = np.meshgrid([-10.0, 0.0, 10.0], [0.0, 20.0])
+    ax_all = court.plot_zone_map(grid_x6, grid_y6, np.array([[0, 1, 2], [3, 4, 5]]))
+
+    few_colors = drawn_zone_colors(ax_few)
+    all_colors = drawn_zone_colors(ax_all)
+
+    assert few_colors[0] == pytest.approx(all_colors[3])
+
+
+def test_twenty_labels_give_twenty_colors():
+    grid_x, grid_y = np.meshgrid([0.0, 1.0, 2.0, 3.0, 4.0], [0.0, 1.0, 2.0, 3.0])
+    grid_labels = np.arange(20).reshape(4, 5)
+    ax = court.plot_zone_map(grid_x, grid_y, grid_labels)
+
+    colors = drawn_zone_colors(ax)
+
+    tab20 = matplotlib.colormaps["tab20"]
+    assert len(np.unique(colors, axis=0)) == 20
+    assert colors == pytest.approx(tab20(np.arange(20)))
