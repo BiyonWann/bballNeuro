@@ -328,6 +328,27 @@ def test_heatmap_single_bin():
     assert heatmap_counts(ax).max() == 5
 
 
+def test_heatmap_max_count_sets_color_limits():
+    x_ft, y_ft = four_shots()
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft, max_count=10)
+
+    norm = ax.collections[0].norm
+    assert norm.vmin == 1
+    assert norm.vmax == 10
+
+
+def test_heatmap_max_count_ignores_data_range():
+    x_ft, y_ft = four_shots()
+    ax_four = court.plot_shot_heatmap(x_ft, y_ft, max_count=20)
+    ax_five = court.plot_shot_heatmap(np.zeros(5), np.ones(5), max_count=20)
+
+    for ax in [ax_four, ax_five]:
+        norm = ax.collections[0].norm
+        assert norm.vmin == 1
+        assert norm.vmax == 20
+
+
 def three_prototypes():
     """Return three prototypes in court feet: near the rim, left corner and top of the arc."""
     return np.array([[0.0, 3.0], [-22.0, 0.0], [0.0, 24.0]])
