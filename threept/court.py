@@ -93,16 +93,24 @@ def plot_zone_map(grid_x, grid_y, grid_labels, ax=None):
     return ax
 
 
-def plot_shot_heatmap(x_ft, y_ft, ax=None, bins=60):
+def plot_shot_heatmap(x_ft, y_ft, ax=None, bins=60, max_count=None):
     """Draw a log-scaled 2D histogram of shots on the court and return the Axes.
 
     The bins always span the drawn court, so heatmaps from different seasons share bins.
-    Shots outside the drawn court are left out.
+    Shots outside the drawn court are left out. Pass the same `max_count` to several
+    heatmaps to run their color scales from 1 to `max_count`. Without it, each heatmap
+    scales to its own counts.
     """
+    if max_count is None:
+        norm = LogNorm()
+    elif max_count < 1:
+        raise ValueError(f"max_count must be at least 1, got {max_count}")
+    else:
+        norm = LogNorm(vmin=1, vmax=max_count)
     if ax is None:
         figure, ax = plt.subplots()
     court_range = [[-SIDELINE_X, SIDELINE_X], [BASELINE_Y, DRAWN_TOP_Y]]
-    ax.hist2d(x_ft, y_ft, bins=bins, range=court_range, norm=LogNorm(), cmap="viridis")
+    ax.hist2d(x_ft, y_ft, bins=bins, range=court_range, norm=norm, cmap="viridis")
     draw_half_court(ax)
     return ax
 
