@@ -34,8 +34,8 @@ def train(
         weights = init_weights(inputs, n_cells, seed)
     else:
         weights = initial_weights
-    k = learning_rate
-    for _epoch in range(epochs):
+    for epoch in range(epochs):
+        k = learning_rate / (1 + epoch)
         for x in inputs:
             winner = find_winner(x, weights)
             w = weights[winner]
