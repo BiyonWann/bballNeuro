@@ -283,6 +283,14 @@ def test_heatmap_counts_shots():
     assert heatmap_counts(ax).sum() == 4
 
 
+def test_heatmap_bins_argument_sets_grid():
+    x_ft, y_ft = four_shots()
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft, bins=10)
+
+    assert ax.collections[0].get_coordinates().shape == (11, 11, 2)
+
+
 @pytest.mark.parametrize(
     ("x_ft", "y_ft"),
     [
@@ -436,13 +444,31 @@ def test_paths_name_count_mismatch_raises():
         court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES[:2])
 
 
+def test_paths_layer_on_given_axes():
+    ax = court.draw_half_court()
+
+    result = court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES, ax=ax)
+
+    assert result is ax
+    assert count_three_point_lines(ax) == 1
+
+
+def test_paths_season_markers_at_season_points():
+    ax = court.plot_prototype_paths(two_cell_paths(), SEASON_NAMES)
+
+    for season in [0, 1, 2]:
+        offsets = np.asarray(ax.collections[season].get_offsets())
+        assert offsets == pytest.approx(two_cell_paths()[season])
+
+
 def test_plot_functions_do_not_mutate_inputs():
     x_ft, y_ft = four_shots()
     grid_x, grid_y = small_grid()
     grid_labels = np.array([[0, 1], [2, 3]])
     prototypes = three_prototypes()
     paths = two_cell_paths()
-    originals = [x_ft.copy(), y_ft.copy(), grid_x.copy(), grid_labels.copy(), prototypes.copy()]
+    originals = [x_ft.copy(), y_ft.copy(), grid_x.copy(), grid_y.copy(), grid_labels.copy()]
+    originals.append(prototypes.copy())
     original_paths = [season.copy() for season in paths]
 
     court.plot_shot_heatmap(x_ft, y_ft)
@@ -450,7 +476,7 @@ def test_plot_functions_do_not_mutate_inputs():
     court.plot_prototypes(prototypes)
     court.plot_prototype_paths(paths, SEASON_NAMES)
 
-    after = [x_ft, y_ft, grid_x, grid_labels, prototypes] + paths
+    after = [x_ft, y_ft, grid_x, grid_y, grid_labels, prototypes] + paths
     before = originals + original_paths
     for index in range(len(before)):
         assert np.array_equal(before[index], after[index])
