@@ -147,3 +147,9 @@ def shape_test(weights: np.ndarray, kind: str) -> dict:
         "n_corner": int(is_corner.sum()),
         "n_top": int(is_top.sum()),
     }
+
+
+def summarize(results: pd.DataFrame) -> pd.DataFrame:
+    """Return the mean and standard deviation of every numeric column except seed."""
+    numbers = results.select_dtypes(include="number").drop(columns="seed", errors="ignore")
+    return pd.DataFrame({"mean": numbers.mean(), "std": numbers.std()})
