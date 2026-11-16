@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 
 from threept import metrics
@@ -78,3 +79,38 @@ def test_cell_allocation_all_rim():
     allocation = metrics.cell_allocation(distances)
 
     assert allocation == {"rim": 3, "mid_range": 0, "beyond_20": 0}
+
+
+def test_purity_hand_case():
+    labels = np.array([0, 0, 0, 1, 1, 2])
+    is_three = np.array([True, True, False, False, False, True])
+
+    purity = metrics.three_point_purity(labels, is_three, 4)
+
+    np.testing.assert_allclose(purity, [2 / 3, 0.0, 1.0, np.nan])
+
+
+def test_purity_empty_cell_is_nan():
+    labels = np.array([0, 0, 0, 1, 1, 2])
+    is_three = np.array([True, True, False, False, False, True])
+
+    purity = metrics.three_point_purity(labels, is_three, 4)
+
+    assert np.isnan(purity[3])
+
+
+def test_purity_accepts_series():
+    labels = np.array([0, 0, 0, 1, 1, 2])
+    is_three = pd.Series([True, True, False, False, False, True], index=[10, 11, 12, 13, 14, 15])
+
+    purity = metrics.three_point_purity(labels, is_three, 4)
+
+    np.testing.assert_allclose(purity, [2 / 3, 0.0, 1.0, np.nan])
+
+
+def test_purity_label_out_of_range():
+    labels = np.array([0, 3])
+    is_three = np.array([True, False])
+
+    with pytest.raises(ValueError):
+        metrics.three_point_purity(labels, is_three, 2)
