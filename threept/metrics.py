@@ -66,3 +66,11 @@ def cell_shot_type(labels: np.ndarray, is_three: np.ndarray, n_cells: int) -> np
     """Return True for each cell where more than half of its shots are threes."""
     shots, threes = _shot_counts(labels, is_three, n_cells)
     return threes > shots / 2
+
+
+def line_recovery_accuracy(
+    cell_is_three: np.ndarray, test_labels: np.ndarray, test_is_three: np.ndarray
+) -> float:
+    """Return the share of test shots whose cell's shot type matches the real one."""
+    predicted = np.asarray(cell_is_three)[np.asarray(test_labels)]
+    return float(np.mean(predicted == np.asarray(test_is_three)))
