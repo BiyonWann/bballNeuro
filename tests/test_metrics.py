@@ -190,3 +190,30 @@ def test_quantization_error_zero():
     error = metrics.quantization_error(weights.copy(), weights)
 
     assert error == pytest.approx(0.0)
+
+
+def test_ari_identical():
+    labels = np.array([0, 0, 1, 1])
+
+    ari = metrics.adjusted_rand(labels, np.array([0, 0, 1, 1]))
+
+    assert isinstance(ari, float)
+    assert ari == pytest.approx(1.0)
+
+
+def test_ari_relabeled():
+    labels = np.array([0, 0, 1, 1])
+    zones = np.array(["B", "B", "A", "A"])
+
+    ari = metrics.adjusted_rand(labels, zones)
+
+    assert ari == pytest.approx(1.0)
+
+
+def test_ari_anti_correlated():
+    labels = np.array([0, 0, 1, 1])
+    zones = np.array([0, 1, 0, 1])
+
+    ari = metrics.adjusted_rand(labels, zones)
+
+    assert ari == pytest.approx(-0.5)
