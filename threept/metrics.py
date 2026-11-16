@@ -15,7 +15,7 @@ ARC_RADIUS_FT = 23.75
 def _check_kind(kind: str) -> None:
     """Raise ValueError unless kind is "cartesian" or "polar"."""
     if kind not in KINDS:
-        raise ValueError(f"kind must be one of {KINDS}, got {kind!r}")
+        raise ValueError(f"kind must be 'cartesian' or 'polar', got '{kind}'")
 
 
 def prototype_distances(weights: np.ndarray, kind: str) -> np.ndarray:
