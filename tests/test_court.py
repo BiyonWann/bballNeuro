@@ -237,3 +237,84 @@ def test_twenty_labels_give_twenty_colors():
     tab20 = matplotlib.colormaps["tab20"]
     assert len(np.unique(colors, axis=0)) == 20
     assert colors == pytest.approx(tab20(np.arange(20)))
+
+
+def four_shots():
+    """Return x and y in feet for three shots at (0, 1) and one at (10, 20)."""
+    return np.array([0.0, 0.0, 0.0, 10.0]), np.array([1.0, 1.0, 1.0, 20.0])
+
+
+def heatmap_counts(ax):
+    """Return the per-bin shot counts drawn by the heatmap on `ax`."""
+    return np.ma.asarray(ax.collections[0].get_array())
+
+
+def test_heatmap_returns_axes():
+    x_ft, y_ft = four_shots()
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft)
+
+    assert isinstance(ax, plt.Axes)
+
+
+def test_heatmap_uses_log_norm():
+    x_ft, y_ft = four_shots()
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft)
+
+    assert isinstance(ax.collections[0].norm, matplotlib.colors.LogNorm)
+
+
+def test_heatmap_draws_court_lines():
+    x_ft, y_ft = four_shots()
+    figure, ax = plt.subplots()
+
+    result = court.plot_shot_heatmap(x_ft, y_ft, ax=ax)
+
+    assert result is ax
+    assert count_three_point_lines(ax) == 1
+
+
+def test_heatmap_counts_shots():
+    x_ft, y_ft = four_shots()
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft, bins=60)
+
+    assert heatmap_counts(ax).sum() == 4
+
+
+@pytest.mark.parametrize(
+    ("x_ft", "y_ft"),
+    [
+        (np.array([0.0, 0.0, 0.0]), np.array([1.0, 1.0, 1.0])),
+        (np.array([-3.0, 0.0, 3.0]), np.array([2.0, 5.0, 9.0])),
+    ],
+)
+def test_heatmap_bins_span_court(x_ft, y_ft):
+    ax = court.plot_shot_heatmap(x_ft, y_ft)
+
+    corners = ax.collections[0].get_coordinates()
+
+    assert corners[..., 0].min() == pytest.approx(-25)
+    assert corners[..., 0].max() == pytest.approx(25)
+    assert corners[..., 1].min() == pytest.approx(-5.25)
+    assert corners[..., 1].max() == pytest.approx(35)
+
+
+def test_heatmap_drops_shot_past_court():
+    x_ft = np.array([0.0, 0.0, 0.0])
+    y_ft = np.array([1.0, 1.0, 40.0])
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft)
+
+    assert heatmap_counts(ax).sum() == 2
+
+
+def test_heatmap_single_bin():
+    x_ft = np.zeros(5)
+    y_ft = np.ones(5)
+
+    ax = court.plot_shot_heatmap(x_ft, y_ft)
+    ax.figure.canvas.draw()
+
+    assert heatmap_counts(ax).max() == 5
