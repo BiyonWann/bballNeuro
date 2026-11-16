@@ -193,6 +193,34 @@ def test_round_trip(kind):
     assert round_trip == pytest.approx(points)
 
 
+def shots_at(locations):
+    """Return a one-game shots frame with a 2PT Mid-Range shot at each (LOC_X, LOC_Y)."""
+    n_shots = len(locations)
+    return pd.DataFrame(
+        {
+            "GAME_ID": [1] * n_shots,
+            "LOC_X": [location[0] for location in locations],
+            "LOC_Y": [location[1] for location in locations],
+            "SHOT_TYPE": ["2PT Field Goal"] * n_shots,
+            "SHOT_ZONE_BASIC": ["Mid-Range"] * n_shots,
+        }
+    )
+
+
+def test_add_features_feet():
+    shots = data.add_features(shots_at([(30, 40)]))
+
+    assert shots.loc[0, "x_ft"] == pytest.approx(3.0)
+    assert shots.loc[0, "y_ft"] == pytest.approx(4.0)
+    assert shots.loc[0, "distance_ft"] == pytest.approx(5.0)
+
+
+def test_add_features_at_basket():
+    shots = data.add_features(shots_at([(0, 0)]))
+
+    assert shots.loc[0, "distance_ft"] == 0.0
+
+
 @pytest.mark.parametrize("function_name", ["court_to_inputs", "inputs_to_court"])
 def test_bad_kind_raises(function_name):
     function = getattr(data, function_name)
