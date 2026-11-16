@@ -32,8 +32,10 @@ def train(
     """Return the trained weights, one prototype row per cell."""
     if initial_weights is None:
         weights = init_weights(inputs, n_cells, seed)
+    elif len(initial_weights) != n_cells:
+        raise ValueError(f"initial_weights has {len(initial_weights)} rows, expected {n_cells}")
     else:
-        weights = initial_weights
+        weights = np.array(initial_weights, dtype=float)
     for epoch in range(epochs):
         k = learning_rate / (1 + epoch)
         for x in inputs:
