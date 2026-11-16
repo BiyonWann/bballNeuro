@@ -131,3 +131,27 @@ def test_draw_half_court_limits_and_aspect():
     assert ax.get_xlim() == pytest.approx((-25, 25))
     assert ax.get_ylim() == pytest.approx((-5.25, 35))
     assert ax.get_aspect() == 1.0
+
+
+def test_court_grid_covers_court():
+    grid_x, grid_y = court.court_grid(step_ft=0.5)
+
+    assert grid_x.min() == pytest.approx(-25)
+    assert grid_x.max() == pytest.approx(25)
+    assert grid_y.min() == pytest.approx(-5.25)
+    assert grid_y.max() == pytest.approx(35)
+
+
+def test_court_grid_shape_and_step():
+    grid_x, grid_y = court.court_grid(step_ft=0.5)
+
+    assert grid_x.shape == grid_y.shape
+    assert np.diff(grid_x[0]) == pytest.approx(np.full(grid_x.shape[1] - 1, 0.5))
+    assert np.all(grid_x[:, 0] == grid_x[0, 0])
+
+
+def test_court_grid_coarse_step_reaches_edges():
+    grid_x, grid_y = court.court_grid(step_ft=7)
+
+    assert grid_x.max() == pytest.approx(25)
+    assert grid_y.max() == pytest.approx(35)
