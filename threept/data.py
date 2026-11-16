@@ -55,6 +55,17 @@ def clean_shots(shots: pd.DataFrame) -> pd.DataFrame:
     return cleaned.reset_index(drop=True)
 
 
+def add_features(shots: pd.DataFrame) -> pd.DataFrame:
+    """Return a copy of shots with court feet and polar features added."""
+    featured = shots.copy()
+    featured["x_ft"] = featured["LOC_X"] / 10
+    featured["y_ft"] = featured["LOC_Y"] / 10
+    points_ft = featured[["x_ft", "y_ft"]].to_numpy()
+    polar = court_to_inputs(points_ft, "polar")
+    featured["distance_ft"] = polar[:, 0]
+    return featured
+
+
 def _check_kind(kind: str) -> None:
     """Raise ValueError unless kind is "cartesian" or "polar"."""
     if kind not in ["cartesian", "polar"]:
