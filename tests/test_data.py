@@ -262,6 +262,26 @@ def test_add_features_matches_court_to_inputs():
     assert shots[["distance_ft", "arc_ft"]].to_numpy() == pytest.approx(expected)
 
 
+def test_add_features_is_three():
+    shots = shots_at([(0, 250), (0, 100)])
+    shots["SHOT_TYPE"] = ["3PT Field Goal", "2PT Field Goal"]
+
+    featured = data.add_features(shots)
+
+    assert list(featured["is_three"]) == [True, False]
+
+
+def test_add_features_does_not_mutate():
+    shots = shots_at([(30, 40)])
+    original = shots.copy()
+
+    featured = data.add_features(shots)
+
+    pd.testing.assert_frame_equal(shots, original)
+    new_columns = ["x_ft", "y_ft", "distance_ft", "angle", "arc_ft", "is_three"]
+    assert set(featured.columns) == set(original.columns) | set(new_columns)
+
+
 @pytest.mark.parametrize("function_name", ["court_to_inputs", "inputs_to_court"])
 def test_bad_kind_raises(function_name):
     function = getattr(data, function_name)
