@@ -138,14 +138,16 @@ def plot_prototype_paths(path_points, season_names, ax=None):
         raise ValueError(f"{len(path_points)} seasons of points but {len(season_names)} names")
     if ax is None:
         figure, ax = plt.subplots()
-    seasons = np.stack(path_points)
-    colors = _cell_colors(seasons.shape[1])
-    for cell in range(seasons.shape[1]):
-        ax.plot(seasons[:, cell, 0], seasons[:, cell, 1], color=colors[cell], zorder=2)
+    points_by_season = np.stack(path_points)  # (n_seasons, n_cells, 2)
+    n_cells = points_by_season.shape[1]
+    colors = _cell_colors(n_cells)
+    for cell in range(n_cells):
+        cell_path = points_by_season[:, cell]
+        ax.plot(cell_path[:, 0], cell_path[:, 1], color=colors[cell], zorder=2)
     for season in range(len(season_names)):
         marker = SEASON_MARKERS[season % len(SEASON_MARKERS)]
-        xs = seasons[season, :, 0]
-        ys = seasons[season, :, 1]
+        xs = points_by_season[season, :, 0]
+        ys = points_by_season[season, :, 1]
         label = season_names[season]
         ax.scatter(xs, ys, c=colors, marker=marker, edgecolors=LINE_COLOR, label=label, zorder=3)
     ax.legend()
