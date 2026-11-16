@@ -74,3 +74,9 @@ def line_recovery_accuracy(
     """Return the share of test shots whose cell's shot type matches the real one."""
     predicted = np.asarray(cell_is_three)[np.asarray(test_labels)]
     return float(np.mean(predicted == np.asarray(test_is_three)))
+
+
+def majority_baseline_accuracy(train_is_three: np.ndarray, test_is_three: np.ndarray) -> float:
+    """Return the accuracy of always guessing the training set's more common shot type."""
+    guess_three = np.mean(train_is_three) > 0.5
+    return float(np.mean(np.asarray(test_is_three) == guess_three))
