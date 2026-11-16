@@ -59,16 +59,25 @@ You do not download anything by hand. The first time a season is needed, the cod
 
 If you already have the season files in another folder, set the optional `BBALL_DATA_DIR` environment variable to that folder before you start the notebook. The notebook reads it and uses `data/` when it is not set.
 
+On macOS or Linux:
+
 ```
 BBALL_DATA_DIR=/path/to/your/data jupyter notebook
 ```
 
+On Windows (cmd):
+
+```
+set BBALL_DATA_DIR=C:\path\to\your\data
+jupyter notebook
+```
+
 ## Run it in Google Colab
 
-1. The Colab setup cell clones this repository, so the repository must be public. If it is private, the clone fails. In that case upload the project files to the Colab session instead. Zip the folder, open the Files panel in Colab, upload the zip and unzip it there, then run the notebook from inside that folder.
+1. The Colab setup cell clones this repository, so the repository must be public. If it is private, the clone fails. In that case upload the project files to the Colab session instead. Zip the folder, open the Files panel in Colab, upload the zip and unzip it there. Name the unzipped folder something other than `bballNeuro`, because the setup cell would try to create that name. Then, in a new cell at the top, run `%cd your_folder_name` and `!pip install -r requirements.txt`, and skip the original setup cell when you run the rest.
 2. Open Colab at https://colab.research.google.com and choose File, then Open notebook.
 3. Pick the GitHub tab and enter `BiyonWann/bballNeuro`, or upload `notebook.ipynb` directly.
-4. Choose Runtime, then Run all. The first cell clones the repository and installs `requirements.txt`. Locally that cell does nothing.
+4. With a public repository, choose Runtime, then Run all. The first cell clones the repository and installs `requirements.txt`. Locally that cell does nothing. With uploaded files, run the cells one by one from the step 1 cell onward instead, skipping the original setup cell.
 5. The data downloads into the Colab session. It is lost when the runtime resets, so the next session downloads it again.
 
 ## What is in the repo
