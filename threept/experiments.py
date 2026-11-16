@@ -71,3 +71,23 @@ def run_season(
         rows.append(row)
         all_weights.append(weights)
     return pd.DataFrame(rows), all_weights
+
+
+def run_baselines(
+    train: pd.DataFrame,
+    test: pd.DataFrame,
+    kind: str = "cartesian",
+    n_cells: int = 6,
+    seeds: tuple = (0, 1, 2, 3, 4),
+) -> pd.DataFrame:
+    """Return evaluate rows for k-means centers and untrained random prototypes, per seed."""
+    train_inputs = data.get_inputs(train, kind)
+    rows = []
+    for seed in seeds:
+        kmeans = metrics.kmeans_weights(train_inputs, n_cells, seed)
+        random_start = network.init_weights(train_inputs, n_cells, seed)
+        for method, weights in [("kmeans", kmeans), ("random", random_start)]:
+            row = {"method": method, "seed": seed}
+            row.update(evaluate(weights, train, test, kind))
+            rows.append(row)
+    return pd.DataFrame(rows)
