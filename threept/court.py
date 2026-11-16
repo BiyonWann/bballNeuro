@@ -3,7 +3,7 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import BoundaryNorm
+from matplotlib.colors import BoundaryNorm, LogNorm
 from matplotlib.patches import Arc, Circle, Rectangle
 
 BASELINE_Y = -5.25
@@ -87,5 +87,19 @@ def plot_zone_map(grid_x, grid_y, grid_labels, ax=None):
     ax.pcolormesh(
         grid_x, grid_y, grid_labels, cmap=CELL_COLORMAP, norm=CELL_NORM, shading="nearest"
     )
+    draw_half_court(ax)
+    return ax
+
+
+def plot_shot_heatmap(x_ft, y_ft, ax=None, bins=60):
+    """Draw a log-scaled 2D histogram of shots on the court and return the Axes.
+
+    The bins always span the drawn court, so heatmaps from different seasons share bins.
+    Shots outside the drawn court are left out.
+    """
+    if ax is None:
+        figure, ax = plt.subplots()
+    court_range = [[-SIDELINE_X, SIDELINE_X], [BASELINE_Y, DRAWN_TOP_Y]]
+    ax.hist2d(x_ft, y_ft, bins=bins, range=court_range, norm=LogNorm(), cmap="viridis")
     draw_half_court(ax)
     return ax
