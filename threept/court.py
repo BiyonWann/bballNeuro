@@ -1,7 +1,9 @@
 """Half-court drawing and court plots. All lengths are in feet with the basket at (0, 0)."""
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import BoundaryNorm
 from matplotlib.patches import Arc, Circle, Rectangle
 
 BASELINE_Y = -5.25
@@ -17,6 +19,12 @@ RIM_RADIUS = 0.75
 FREE_THROW_RADIUS = 6
 DRAWN_TOP_Y = 35
 LINE_COLOR = "black"
+
+# Cell i is always tab20 color i, so a cell keeps its color across plots, seeds and label sets.
+CELL_COLORMAP = matplotlib.colormaps["tab20"]
+MAX_CELLS = 20
+# One bin per cell index: cell i falls between i - 0.5 and i + 0.5.
+CELL_NORM = BoundaryNorm(np.arange(MAX_CELLS + 1) - 0.5, MAX_CELLS)
 
 
 def three_point_line(n_points: int = 200) -> tuple[np.ndarray, np.ndarray]:
@@ -76,6 +84,8 @@ def plot_zone_map(grid_x, grid_y, grid_labels, ax=None):
         raise ValueError(f"grid_labels shape {grid_labels.shape} != grid shape {np.shape(grid_x)}")
     if ax is None:
         figure, ax = plt.subplots()
-    ax.pcolormesh(grid_x, grid_y, grid_labels, shading="nearest")
+    ax.pcolormesh(
+        grid_x, grid_y, grid_labels, cmap=CELL_COLORMAP, norm=CELL_NORM, shading="nearest"
+    )
     draw_half_court(ax)
     return ax
