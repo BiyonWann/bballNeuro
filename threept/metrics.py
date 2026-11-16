@@ -134,3 +134,18 @@ def kmeans_weights(inputs: np.ndarray, n_cells: int, seed: int = 0) -> np.ndarra
     kmeans = KMeans(n_clusters=n_cells, n_init=10, random_state=seed)
     kmeans.fit(inputs)
     return kmeans.cluster_centers_
+
+
+def prototype_gap(weights: np.ndarray, reference: np.ndarray) -> float:
+    """Return the mean distance between matched prototypes, closest pair first."""
+    if len(weights) != len(reference):
+        raise ValueError("weights and reference must have the same number of rows")
+    distances = _pairwise_distances(reference, weights)
+    matched_distances = []
+    for _ in range(len(reference)):
+        # argmin searches the flattened array, so turn its index back into (row, column).
+        row, column = np.unravel_index(np.argmin(distances), distances.shape)
+        matched_distances.append(distances[row, column])
+        distances[row, :] = np.inf
+        distances[:, column] = np.inf
+    return float(np.mean(matched_distances))
