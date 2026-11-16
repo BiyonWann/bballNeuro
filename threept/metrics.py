@@ -40,3 +40,23 @@ def cell_allocation(distances: np.ndarray) -> dict:
         "mid_range": int(is_mid.sum()),
         "beyond_20": int(is_beyond.sum()),
     }
+
+
+def _shot_counts(labels: np.ndarray, is_three: np.ndarray, n_cells: int) -> tuple:
+    """Return (shots, threes) won by each cell, checking labels are valid cells."""
+    labels = np.asarray(labels)
+    if labels.min() < 0 or labels.max() >= n_cells:
+        raise ValueError(f"labels must be between 0 and {n_cells - 1}")
+    three_weights = np.asarray(is_three, dtype=float)
+    shots = np.bincount(labels, minlength=n_cells)
+    threes = np.bincount(labels, weights=three_weights, minlength=n_cells)
+    return shots, threes
+
+
+def three_point_purity(labels: np.ndarray, is_three: np.ndarray, n_cells: int) -> np.ndarray:
+    """Return the share of each cell's shots that are threes, NaN for an empty cell."""
+    shots, threes = _shot_counts(labels, is_three, n_cells)
+    purity = np.full(n_cells, np.nan)
+    has_shots = shots > 0
+    purity[has_shots] = threes[has_shots] / shots[has_shots]
+    return purity
