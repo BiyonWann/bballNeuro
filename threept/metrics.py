@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+from sklearn.cluster import KMeans
 from sklearn.metrics import adjusted_rand_score
 
 RIM_MAX_FT = 8
@@ -126,3 +127,10 @@ def zone_confusion(
         raise ValueError("zones contains a value that is not in zone_names")
     counts = pd.crosstab(labels, zones, rownames=["cell"], colnames=["zone"])
     return counts.reindex(index=range(n_cells), columns=zone_names, fill_value=0)
+
+
+def kmeans_weights(inputs: np.ndarray, n_cells: int, seed: int = 0) -> np.ndarray:
+    """Return k-means cluster centers, shape (n_cells, 2), as a baseline map."""
+    kmeans = KMeans(n_clusters=n_cells, n_init=10, random_state=seed)
+    kmeans.fit(inputs)
+    return kmeans.cluster_centers_
