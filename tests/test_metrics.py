@@ -62,3 +62,19 @@ def test_prototype_angles_bad_kind():
 
     with pytest.raises(ValueError):
         metrics.prototype_angles(weights, "xy")
+
+
+def test_cell_allocation_edges():
+    distances = np.array([0.0, 7.99, 8.0, 20.0, 20.01, 30.0])
+
+    allocation = metrics.cell_allocation(distances)
+
+    assert allocation == {"rim": 2, "mid_range": 2, "beyond_20": 2}
+
+
+def test_cell_allocation_all_rim():
+    distances = np.array([1.0, 2.0, 3.0])
+
+    allocation = metrics.cell_allocation(distances)
+
+    assert allocation == {"rim": 3, "mid_range": 0, "beyond_20": 0}
