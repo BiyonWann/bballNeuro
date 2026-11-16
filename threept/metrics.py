@@ -60,3 +60,9 @@ def three_point_purity(labels: np.ndarray, is_three: np.ndarray, n_cells: int) -
     has_shots = shots > 0
     purity[has_shots] = threes[has_shots] / shots[has_shots]
     return purity
+
+
+def cell_shot_type(labels: np.ndarray, is_three: np.ndarray, n_cells: int) -> np.ndarray:
+    """Return True for each cell where more than half of its shots are threes."""
+    shots, threes = _shot_counts(labels, is_three, n_cells)
+    return threes > shots / 2
