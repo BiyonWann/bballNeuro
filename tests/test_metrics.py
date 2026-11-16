@@ -144,3 +144,31 @@ def test_line_recovery_perfect():
     accuracy = metrics.line_recovery_accuracy(cell_is_three, test_labels, test_is_three)
 
     assert accuracy == pytest.approx(1.0)
+
+
+def test_majority_baseline_twos_win():
+    train_is_three = np.array([False, False, False, True])
+    test_is_three = np.array([False, False, True, False, True])
+
+    accuracy = metrics.majority_baseline_accuracy(train_is_three, test_is_three)
+
+    assert isinstance(accuracy, float)
+    assert accuracy == pytest.approx(0.6)
+
+
+def test_majority_baseline_threes_win():
+    train_is_three = np.array([True, True, True, False])
+    test_is_three = np.array([False, False, True, False, True])
+
+    accuracy = metrics.majority_baseline_accuracy(train_is_three, test_is_three)
+
+    assert accuracy == pytest.approx(0.4)
+
+
+def test_majority_baseline_tie_predicts_two():
+    train_is_three = np.array([True, False])
+    test_is_three = np.array([True, False, False])
+
+    accuracy = metrics.majority_baseline_accuracy(train_is_three, test_is_three)
+
+    assert accuracy == pytest.approx(2 / 3)
