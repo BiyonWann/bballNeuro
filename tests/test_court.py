@@ -488,3 +488,11 @@ def test_paths_legend_markers_are_neutral():
     gray = matplotlib.colors.to_rgba("gray")
     for handle in ax.get_legend().legend_handles:
         assert np.asarray(handle.get_facecolor())[0] == pytest.approx(gray)
+
+
+def test_paths_more_seasons_than_markers_raises():
+    seven_seasons = [np.array([[0.0, float(season)]]) for season in range(7)]
+    seven_names = [f"season {season}" for season in range(7)]
+
+    with pytest.raises(ValueError):
+        court.plot_prototype_paths(seven_seasons, seven_names)
