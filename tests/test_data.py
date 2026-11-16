@@ -455,3 +455,21 @@ def test_prepare_season_same_seed(cached_dir, no_network):
 
     pd.testing.assert_frame_equal(first_train, second_train)
     pd.testing.assert_frame_equal(first_test, second_test)
+
+
+def test_prepare_season_different_seed(cached_dir, no_network):
+    _, first_test = data.prepare_season(2000, seed=0, n_train=20000, data_dir=cached_dir)
+    _, second_test = data.prepare_season(2000, seed=1, n_train=20000, data_dir=cached_dir)
+
+    assert set(first_test["GAME_ID"]) == {20000001}
+    assert set(second_test["GAME_ID"]) == {22400001}
+
+
+def test_prepare_season_samples_with_seed(cached_dir, no_network):
+    shots = data.add_features(data.clean_shots(data.load_season(2000, data_dir=cached_dir)))
+    full_train, _ = data.split_by_game(shots, seed=1)
+    expected = data.sample_shots(full_train, n=10, seed=1)
+
+    train, _ = data.prepare_season(2000, seed=1, n_train=10, data_dir=cached_dir)
+
+    pd.testing.assert_frame_equal(train, expected)
