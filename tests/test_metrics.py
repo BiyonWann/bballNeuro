@@ -172,3 +172,21 @@ def test_majority_baseline_tie_predicts_two():
     accuracy = metrics.majority_baseline_accuracy(train_is_three, test_is_three)
 
     assert accuracy == pytest.approx(2 / 3)
+
+
+def test_quantization_error_hand_case():
+    inputs = np.array([[3.0, 4.0], [10.0, 1.0]])
+    weights = np.array([[0.0, 0.0], [10.0, 0.0]])
+
+    error = metrics.quantization_error(inputs, weights)
+
+    assert isinstance(error, float)
+    assert error == pytest.approx(3.0)
+
+
+def test_quantization_error_zero():
+    weights = np.array([[0.0, 0.0], [10.0, 0.0]])
+
+    error = metrics.quantization_error(weights.copy(), weights)
+
+    assert error == pytest.approx(0.0)
