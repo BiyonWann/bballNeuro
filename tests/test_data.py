@@ -176,7 +176,24 @@ def test_court_to_inputs_polar_clips(x_ft, sign):
     assert inputs[0, 1] == pytest.approx(sign * 23.75 * data.MAX_ANGLE)
 
 
-@pytest.mark.parametrize("function_name", ["court_to_inputs"])
+def test_inputs_to_court_polar():
+    inputs = np.array([[23.75, 0.0], [22.0, 23.75 * np.pi / 2]])
+
+    points = data.inputs_to_court(inputs, "polar")
+
+    assert points == pytest.approx(np.array([[0.0, 23.75], [22.0, 0.0]]))
+
+
+@pytest.mark.parametrize("kind", ["cartesian", "polar"])
+def test_round_trip(kind):
+    points = np.array([[0.0, 23.75], [-22.0, 0.0], [22.0, 0.0], [3.0, 4.0], [-10.0, 15.0]])
+
+    round_trip = data.inputs_to_court(data.court_to_inputs(points, kind), kind)
+
+    assert round_trip == pytest.approx(points)
+
+
+@pytest.mark.parametrize("function_name", ["court_to_inputs", "inputs_to_court"])
 def test_bad_kind_raises(function_name):
     function = getattr(data, function_name)
 
