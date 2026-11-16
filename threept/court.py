@@ -137,6 +137,8 @@ def plot_prototype_paths(path_points, season_names, ax=None):
     """
     if len(path_points) != len(season_names):
         raise ValueError(f"{len(path_points)} seasons of points but {len(season_names)} names")
+    if len(season_names) > len(SEASON_MARKERS):
+        raise ValueError(f"at most {len(SEASON_MARKERS)} seasons, got {len(season_names)}")
     if ax is None:
         figure, ax = plt.subplots()
     points_by_season = np.stack(path_points)  # (n_seasons, n_cells, 2)
@@ -146,7 +148,7 @@ def plot_prototype_paths(path_points, season_names, ax=None):
         cell_path = points_by_season[:, cell]
         ax.plot(cell_path[:, 0], cell_path[:, 1], color=colors[cell], zorder=2)
     for season in range(len(season_names)):
-        marker = SEASON_MARKERS[season % len(SEASON_MARKERS)]
+        marker = SEASON_MARKERS[season]
         xs = points_by_season[season, :, 0]
         ys = points_by_season[season, :, 1]
         label = season_names[season]
