@@ -96,6 +96,14 @@ def run_baselines(
     return pd.DataFrame(rows)
 
 
+def _sequential_row(name: str, result: dict, movement: float) -> dict:
+    """Return one season's summary: its name, movement, group shares and accuracy."""
+    row = {"season": name, "mean_movement": movement}
+    for key in ["rim", "mid_range", "beyond_20", "accuracy"]:
+        row[key] = result[key]
+    return row
+
+
 def run_sequential(
     seasons: list, kind: str = "cartesian", n_cells: int = 6, seed: int = 0
 ) -> tuple:
@@ -108,17 +116,12 @@ def run_sequential(
     previous = None
     for name, train, test in seasons:
         train_inputs = data.get_inputs(train, kind)
-        weights = network.train(
-            train_inputs, n_cells=n_cells, seed=seed, initial_weights=previous
-        )
-        result = evaluate(weights, train, test, kind)
+        weights = network.train(train_inputs, n_cells=n_cells, seed=seed, initial_weights=previous)
         movement = float("nan")
         if previous is not None:
             movement = float(metrics.prototype_movement(previous, weights).mean())
-        row = {"season": name, "mean_movement": movement}
-        for key in ["rim", "mid_range", "beyond_20", "accuracy"]:
-            row[key] = result[key]
-        rows.append(row)
+        result = evaluate(weights, train, test, kind)
+        rows.append(_sequential_row(name, result, movement))
         all_weights.append(weights)
         previous = weights
     return all_weights, pd.DataFrame(rows)
