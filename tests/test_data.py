@@ -463,29 +463,29 @@ def test_prepare_season_different_seed(cached_dir, no_network):
     assert set(second_test["GAME_ID"]) == {22400001}
 
 
-def test_prepare_season_samples_with_seed(cached_dir, no_network):
-    shots = data.add_features(data.clean_shots(data.load_season(2000, data_dir=cached_dir)))
-    full_train, _ = data.split_by_game(shots, seed=1)
-    expected = data.sample_shots(full_train, n=10, seed=1)
+@pytest.mark.parametrize(
+    "seed, loc_x, loc_y",
+    [
+        (0, [236, 10, 26, 223, 45], [72, 13, -10, 11, -1]),
+        (1, [37, -7, -58, 0, 157], [12, 19, 28, 0, 212]),
+    ],
+)
+def test_prepare_season_samples_with_seed(cached_dir, no_network, seed, loc_x, loc_y):
+    train, _ = data.prepare_season(2000, seed=seed, n_train=5, data_dir=cached_dir)
 
-    train, _ = data.prepare_season(2000, seed=1, n_train=10, data_dir=cached_dir)
-
-    pd.testing.assert_frame_equal(train, expected)
+    assert list(train["LOC_X"]) == loc_x
+    assert list(train["LOC_Y"]) == loc_y
 
 
 def test_prepare_season_test_fraction(tmp_path, no_network):
-    game_ids = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6]
-    shots = pd.DataFrame(
-        {
-            "GAME_ID": game_ids,
-            "LOC_X": [10] * 12,
-            "LOC_Y": [150] * 12,
-            "SHOT_TYPE": ["2PT Field Goal"] * 12,
-            "SHOT_ZONE_BASIC": ["Mid-Range"] * 12,
-        }
-    )
+    shots = game_shots(20)
+    n_shots = len(shots)
+    shots["LOC_X"] = [10] * n_shots
+    shots["LOC_Y"] = [150] * n_shots
+    shots["SHOT_TYPE"] = ["2PT Field Goal"] * n_shots
+    shots["SHOT_ZONE_BASIC"] = ["Mid-Range"] * n_shots
     shots.to_csv(tmp_path / "shotdetail_2000.csv", index=False)
 
     _, test = data.prepare_season(2000, seed=0, data_dir=tmp_path)
 
-    assert test["GAME_ID"].nunique() == 1
+    assert test["GAME_ID"].nunique() == 4
