@@ -60,7 +60,24 @@ def test_init_weights_rows_come_from_inputs():
 
     assert weights.shape == (4, 2)
     for row in weights:
-        assert (inputs == row).all(axis=1).any()
+        assert row.tolist() in inputs.tolist()
+
+
+def test_init_weights_int_inputs_give_float_weights():
+    inputs = np.array([[i, 10 * i] for i in range(10)])
+
+    weights = init_weights(inputs, 4, seed=0)
+
+    assert weights.dtype == float
+
+
+def test_train_int_inputs_keep_fractional_updates():
+    inputs = np.array([[0, 0], [1, 0]])
+
+    weights = train(inputs, n_cells=1, epochs=1, learning_rate=0.5, seed=0)
+
+    assert 0 < weights[0, 0] < 1
+    assert weights[0, 1] == 0
 
 
 def test_init_weights_rows_are_distinct():
@@ -128,9 +145,17 @@ def test_train_learning_rate_decays_each_epoch():
     inputs = np.array([[4.0, 0.0]])
     initial = np.array([[0.0, 0.0], [20.0, 0.0]])
 
-    weights = train(inputs, n_cells=2, epochs=2, learning_rate=0.5, initial_weights=initial)
+    weights = train(inputs, n_cells=2, epochs=3, learning_rate=0.5, initial_weights=initial)
 
-    assert np.array_equal(weights, np.array([[2.5, 0.0], [20.0, 0.0]]))
+    assert np.allclose(weights, np.array([[2.75, 0.0], [20.0, 0.0]]))
+
+
+def test_train_without_initial_weights_starts_from_init_weights():
+    inputs = make_random_inputs()
+
+    weights = train(inputs, n_cells=3, epochs=0, seed=4)
+
+    assert np.array_equal(weights, init_weights(inputs, 3, seed=4))
 
 
 def test_train_resets_learning_rate_each_call():
