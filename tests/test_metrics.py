@@ -369,3 +369,20 @@ def test_prototype_gap_length_mismatch():
 
     with pytest.raises(ValueError):
         metrics.prototype_gap(weights, reference)
+
+
+def test_prototype_movement_hand_case():
+    before = np.array([[0.0, 0.0], [1.0, 1.0]])
+    after = np.array([[3.0, 4.0], [1.0, 1.0]])
+
+    movement = metrics.prototype_movement(before, after)
+
+    np.testing.assert_allclose(movement, [5.0, 0.0])
+
+
+def test_prototype_movement_shape_mismatch():
+    before = np.array([[0.0, 0.0], [1.0, 1.0]])
+    after = np.array([[0.0, 0.0], [1.0, 1.0], [2.0, 2.0]])
+
+    with pytest.raises(ValueError):
+        metrics.prototype_movement(before, after)
