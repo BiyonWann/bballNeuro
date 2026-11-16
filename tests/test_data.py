@@ -324,10 +324,8 @@ def test_get_inputs_default_kind_is_cartesian(xy_only):
     assert inputs.tolist() == [[3.0, 4.0], [-22.0, 0.0], [0.0, 23.75]]
 
 
-@pytest.mark.parametrize("function_name", ["court_to_inputs", "inputs_to_court"])
-def test_bad_kind_raises(function_name):
-    function = getattr(data, function_name)
-
+@pytest.mark.parametrize("function", [data.court_to_inputs, data.inputs_to_court])
+def test_bad_kind_raises(function):
     with pytest.raises(ValueError):
         function(np.array([[1.0, 2.0]]), "spherical")
 
