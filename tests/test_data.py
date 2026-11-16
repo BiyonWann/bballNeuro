@@ -142,6 +142,22 @@ def test_clean_shots_keeps_six_zones(loaded_fixture):
     assert len(shots) == 38
 
 
+def test_clean_shots_drops_unknown_zone():
+    shots = pd.DataFrame(
+        {
+            "GAME_ID": [1, 1],
+            "LOC_X": [10.0, 20.0],
+            "LOC_Y": [50.0, 60.0],
+            "SHOT_TYPE": ["2PT Field Goal", "2PT Field Goal"],
+            "SHOT_ZONE_BASIC": ["Mid-Range", "Unknown"],
+        }
+    )
+
+    cleaned = data.clean_shots(shots)
+
+    assert list(cleaned["SHOT_ZONE_BASIC"]) == ["Mid-Range"]
+
+
 def test_clean_shots_resets_index(loaded_fixture):
     shots = data.clean_shots(loaded_fixture)
 
@@ -308,10 +324,8 @@ def test_get_inputs_default_kind_is_cartesian(xy_only):
     assert inputs.tolist() == [[3.0, 4.0], [-22.0, 0.0], [0.0, 23.75]]
 
 
-@pytest.mark.parametrize("function_name", ["court_to_inputs", "inputs_to_court"])
-def test_bad_kind_raises(function_name):
-    function = getattr(data, function_name)
-
+@pytest.mark.parametrize("function", [data.court_to_inputs, data.inputs_to_court])
+def test_bad_kind_raises(function):
     with pytest.raises(ValueError):
         function(np.array([[1.0, 2.0]]), "spherical")
 
@@ -439,3 +453,39 @@ def test_prepare_season_same_seed(cached_dir, no_network):
 
     pd.testing.assert_frame_equal(first_train, second_train)
     pd.testing.assert_frame_equal(first_test, second_test)
+
+
+def test_prepare_season_different_seed(cached_dir, no_network):
+    _, first_test = data.prepare_season(2000, seed=0, n_train=20000, data_dir=cached_dir)
+    _, second_test = data.prepare_season(2000, seed=1, n_train=20000, data_dir=cached_dir)
+
+    assert set(first_test["GAME_ID"]) == {20000001}
+    assert set(second_test["GAME_ID"]) == {22400001}
+
+
+def test_prepare_season_samples_with_seed(cached_dir, no_network):
+    shots = data.add_features(data.clean_shots(data.load_season(2000, data_dir=cached_dir)))
+    full_train, _ = data.split_by_game(shots, seed=1)
+    expected = data.sample_shots(full_train, n=10, seed=1)
+
+    train, _ = data.prepare_season(2000, seed=1, n_train=10, data_dir=cached_dir)
+
+    pd.testing.assert_frame_equal(train, expected)
+
+
+def test_prepare_season_test_fraction(tmp_path, no_network):
+    game_ids = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6]
+    shots = pd.DataFrame(
+        {
+            "GAME_ID": game_ids,
+            "LOC_X": [10] * 12,
+            "LOC_Y": [150] * 12,
+            "SHOT_TYPE": ["2PT Field Goal"] * 12,
+            "SHOT_ZONE_BASIC": ["Mid-Range"] * 12,
+        }
+    )
+    shots.to_csv(tmp_path / "shotdetail_2000.csv", index=False)
+
+    _, test = data.prepare_season(2000, seed=0, data_dir=tmp_path)
+
+    assert test["GAME_ID"].nunique() == 1
