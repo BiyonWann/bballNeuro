@@ -221,6 +221,47 @@ def test_add_features_at_basket():
     assert shots.loc[0, "distance_ft"] == 0.0
 
 
+@pytest.mark.parametrize(
+    "location, distance_ft, angle",
+    [((0, 237.5), 23.75, 0.0), ((220, 0), 22.0, np.pi / 2), ((-220, 0), 22.0, -np.pi / 2)],
+)
+def test_add_features_angle(location, distance_ft, angle):
+    shots = data.add_features(shots_at([location]))
+
+    assert shots.loc[0, "distance_ft"] == pytest.approx(distance_ft)
+    assert shots.loc[0, "angle"] == pytest.approx(angle)
+    assert shots.loc[0, "arc_ft"] == pytest.approx(23.75 * angle)
+
+
+@pytest.mark.parametrize("location, sign", [((5, -30), 1), ((-5, -30), -1)])
+def test_add_features_clips_angle_behind_rim(location, sign):
+    shots = data.add_features(shots_at([location]))
+
+    assert shots.loc[0, "angle"] == pytest.approx(sign * data.MAX_ANGLE)
+    assert shots.loc[0, "arc_ft"] == pytest.approx(sign * 23.75 * data.MAX_ANGLE)
+
+
+def test_add_features_keeps_angle_inside_clip():
+    shots = data.add_features(shots_at([(220, -220 * np.tan(0.1))]))
+
+    assert shots.loc[0, "angle"] == pytest.approx(np.pi / 2 + 0.1)
+
+
+def test_add_features_clip_keeps_distance():
+    shots = data.add_features(shots_at([(0, -30)]))
+
+    assert shots.loc[0, "distance_ft"] == pytest.approx(3.0)
+    assert shots.loc[0, "angle"] == pytest.approx(data.MAX_ANGLE)
+
+
+def test_add_features_matches_court_to_inputs():
+    shots = data.add_features(shots_at([(0, 237.5), (-230, -26), (26, -10), (157, 203), (5, 80)]))
+
+    points_ft = shots[["x_ft", "y_ft"]].to_numpy()
+    expected = data.court_to_inputs(points_ft, "polar")
+    assert shots[["distance_ft", "arc_ft"]].to_numpy() == pytest.approx(expected)
+
+
 @pytest.mark.parametrize("function_name", ["court_to_inputs", "inputs_to_court"])
 def test_bad_kind_raises(function_name):
     function = getattr(data, function_name)
