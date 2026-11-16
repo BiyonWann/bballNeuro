@@ -42,13 +42,13 @@ def train(
         order = rng.permutation(len(inputs))
         for x in inputs[order]:
             winner = find_winner(x, weights)
-            leak_losers(x, weights, winner, leak_rate * k)
+            _leak_losers(x, weights, winner, leak_rate * k)
             w = weights[winner]
             weights[winner] = w + k * (x - w)
     return weights
 
 
-def leak_losers(x: np.ndarray, weights: np.ndarray, winner: int, leak_k: float) -> None:
+def _leak_losers(x: np.ndarray, weights: np.ndarray, winner: int, leak_k: float) -> None:
     """Move every cell except the winner toward the shot, in place, by leak_k * (x - w).
 
     Does nothing when leak_k is 0, which is plain winner-take-all learning.
