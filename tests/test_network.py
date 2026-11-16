@@ -172,3 +172,39 @@ def test_train_int_initial_weights_give_float_result():
 
     assert weights.dtype == float
     assert np.array_equal(weights, np.array([[1.0, 2.0], [10.0, 10.0]]))
+
+
+def make_cluster_near_origin():
+    rng = np.random.default_rng(0)
+    return rng.normal(0.0, 1.0, size=(50, 2))
+
+
+def test_train_leak_moves_loser_by_exact_amount():
+    inputs = np.array([[4.0, 0.0]])
+    initial = np.array([[1.0, 0.0], [10.0, 0.0]])
+
+    weights = train(
+        inputs, n_cells=2, epochs=1, learning_rate=0.5, initial_weights=initial, leak_rate=0.5
+    )
+
+    assert np.array_equal(weights, np.array([[2.5, 0.0], [8.5, 0.0]]))
+
+
+def test_train_leak_moves_dead_cell_toward_data():
+    inputs = make_cluster_near_origin()
+    initial = np.array([[0.0, 0.0], [100.0, 100.0]])
+    data_mean = inputs.mean(axis=0)
+    start_distance = np.linalg.norm(initial[1] - data_mean)
+
+    weights = train(inputs, n_cells=2, initial_weights=initial, leak_rate=0.1)
+
+    assert np.linalg.norm(weights[1] - data_mean) < start_distance
+
+
+def test_train_without_leak_leaves_dead_cell_fixed():
+    inputs = make_cluster_near_origin()
+    initial = np.array([[0.0, 0.0], [100.0, 100.0]])
+
+    weights = train(inputs, n_cells=2, initial_weights=initial, leak_rate=0.0)
+
+    assert np.array_equal(weights[1], np.array([100.0, 100.0]))
