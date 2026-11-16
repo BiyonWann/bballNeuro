@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from threept.network import find_winner, init_weights, train
+from threept.network import assign, find_winner, init_weights, train
 
 
 def test_find_winner_picks_closest_cell():
@@ -218,3 +218,33 @@ def test_train_shuffle_depends_on_seed():
     second = train(inputs, n_cells=1, epochs=1, learning_rate=0.5, seed=1, initial_weights=initial)
 
     assert not np.array_equal(first, second)
+
+
+def test_assign_matches_find_winner():
+    rng = np.random.default_rng(0)
+    inputs = rng.uniform(-25.0, 25.0, size=(100, 2))
+    weights = rng.uniform(-25.0, 25.0, size=(6, 2))
+    expected = np.array([find_winner(shot, weights) for shot in inputs])
+
+    labels = assign(inputs, weights)
+
+    assert np.array_equal(labels, expected)
+
+
+def test_assign_tie_goes_to_lowest_index():
+    inputs = np.array([[0.0, 0.0], [2.0, 0.0]])
+    weights = np.array([[1.0, 0.0], [-1.0, 0.0], [3.0, 0.0]])
+
+    labels = assign(inputs, weights)
+
+    assert np.array_equal(labels, np.array([0, 0]))
+
+
+def test_assign_returns_int_labels():
+    inputs = np.array([[0.0, 0.0], [2.0, 0.0]])
+    weights = np.array([[1.0, 0.0], [-1.0, 0.0], [3.0, 0.0]])
+
+    labels = assign(inputs, weights)
+
+    assert labels.shape == (2,)
+    assert np.issubdtype(labels.dtype, np.integer)
