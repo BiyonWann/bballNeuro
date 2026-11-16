@@ -62,11 +62,15 @@ def shot_share_by_group(labels: np.ndarray, distances: np.ndarray) -> dict:
 def _shot_counts(labels: np.ndarray, is_three: np.ndarray, n_cells: int) -> tuple:
     """Return (shots, threes) won by each cell, checking labels are valid cells."""
     labels = np.asarray(labels)
+    is_three = np.asarray(is_three)
     if labels.min() < 0 or labels.max() >= n_cells:
         raise ValueError(f"labels must be between 0 and {n_cells - 1}")
-    three_weights = np.asarray(is_three, dtype=float)
-    shots = np.bincount(labels, minlength=n_cells)
-    threes = np.bincount(labels, weights=three_weights, minlength=n_cells)
+    shots = np.zeros(n_cells)
+    threes = np.zeros(n_cells)
+    for cell in range(n_cells):
+        in_cell = labels == cell
+        shots[cell] = in_cell.sum()
+        threes[cell] = is_three[in_cell].sum()
     return shots, threes
 
 
