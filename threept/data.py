@@ -1,5 +1,7 @@
 """Load, clean and reshape NBA shot data into model inputs."""
 
+from pathlib import Path
+
 import numpy as np
 
 SEASONS = {"2000-01": 2000, "2008-09": 2008, "2015-16": 2015, "2024-25": 2024}
@@ -15,3 +17,9 @@ ZONES = [
 ARC_RADIUS_FT = 23.75
 # A little past the baseline, so shots right behind the rim do not wrap to +-pi.
 MAX_ANGLE = np.pi / 2 + 0.25
+
+
+def download_season(start_year: int, data_dir: str | Path = "data") -> Path:
+    """Return the path to a season's shot CSV."""
+    csv_path = Path(data_dir) / f"shotdetail_{start_year}.csv"
+    return csv_path
