@@ -4,6 +4,7 @@ import urllib.request
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from threept import data
@@ -104,3 +105,44 @@ def test_load_season_row_count(cached_dir, no_network):
     shots = data.load_season(2000, data_dir=cached_dir)
 
     assert len(shots) == 40
+
+
+@pytest.fixture
+def loaded_fixture(cached_dir, no_network):
+    return data.load_season(2000, data_dir=cached_dir)
+
+
+def test_clean_shots_drops_backcourt(loaded_fixture):
+    shots = data.clean_shots(loaded_fixture)
+
+    assert "Backcourt" not in set(shots["SHOT_ZONE_BASIC"])
+
+
+def test_clean_shots_drops_missing_coordinates():
+    shots = pd.DataFrame(
+        {
+            "GAME_ID": [1, 1, 1],
+            "LOC_X": [10.0, np.nan, 20.0],
+            "LOC_Y": [50.0, 60.0, np.nan],
+            "SHOT_TYPE": ["2PT Field Goal", "2PT Field Goal", "2PT Field Goal"],
+            "SHOT_ZONE_BASIC": ["Mid-Range", "Mid-Range", "Mid-Range"],
+        }
+    )
+
+    cleaned = data.clean_shots(shots)
+
+    assert list(cleaned["LOC_X"]) == [10.0]
+    assert list(cleaned["LOC_Y"]) == [50.0]
+
+
+def test_clean_shots_keeps_six_zones(loaded_fixture):
+    shots = data.clean_shots(loaded_fixture)
+
+    assert set(shots["SHOT_ZONE_BASIC"]) == set(data.ZONES)
+    assert len(shots) == 38
+
+
+def test_clean_shots_resets_index(loaded_fixture):
+    shots = data.clean_shots(loaded_fixture)
+
+    assert list(shots.index) == list(range(38))
