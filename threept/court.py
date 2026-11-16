@@ -26,6 +26,7 @@ MAX_CELLS = 20
 # One bin per cell index: cell i falls between i - 0.5 and i + 0.5.
 CELL_NORM = BoundaryNorm(np.arange(MAX_CELLS + 1) - 0.5, MAX_CELLS)
 SEASON_MARKERS = ["o", "s", "^", "D", "v", "P"]
+LEGEND_MARKER_COLOR = "gray"
 
 
 def three_point_line(n_points: int = 200) -> tuple[np.ndarray, np.ndarray]:
@@ -150,5 +151,8 @@ def plot_prototype_paths(path_points, season_names, ax=None):
         ys = points_by_season[season, :, 1]
         label = season_names[season]
         ax.scatter(xs, ys, c=colors, marker=marker, edgecolors=LINE_COLOR, label=label, zorder=3)
-    ax.legend()
+    legend = ax.legend()
+    # Season markers in the legend stay gray so they don't read as cell 0.
+    for handle in legend.legend_handles:
+        handle.set_facecolor(LEGEND_MARKER_COLOR)
     return ax
