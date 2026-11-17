@@ -38,7 +38,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 pip install notebook
 ```
 
-`requirements.txt` holds numpy, pandas, matplotlib and scikit-learn. `requirements-dev.txt` adds pytest, ruff and nbconvert.
+`requirements.txt` holds numpy, pandas, matplotlib and scikit-learn. `requirements-dev.txt` adds pytest, ruff, nbconvert and ipykernel.
 
 ## Run the notebook
 
@@ -56,7 +56,7 @@ To run it top to bottom and save the result in `executed.ipynb`:
 jupyter nbconvert --to notebook --execute notebook.ipynb --output executed.ipynb
 ```
 
-The first run downloads the data, so it needs internet and takes longer.
+The first run downloads the four season files, about 160 MB once unpacked, so it needs internet. The whole notebook takes about two minutes.
 
 ## Where the data comes from
 
