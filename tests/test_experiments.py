@@ -9,7 +9,6 @@ ARC_ZONE = "Above the Break 3"
 
 
 def make_frame(y_ft, is_three, zones, games):
-    """Return shots on the x = 0 line, with one row per entry."""
     return pd.DataFrame(
         {
             "GAME_ID": games,
@@ -194,7 +193,6 @@ def test_evaluate_bad_kind(small_train, small_test, rim_arc_weights):
 
 
 def repeat_shots(shots, times):
-    """Return every shot repeated `times` times, keeping each game's shots together."""
     repeated = shots.loc[shots.index.repeat(times)]
     return repeated.reset_index(drop=True)
 

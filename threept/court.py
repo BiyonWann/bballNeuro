@@ -1,5 +1,3 @@
-"""Half-court drawing and court plots. All lengths are in feet with the basket at (0, 0)."""
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,10 +28,6 @@ LEGEND_MARKER_COLOR = "gray"
 
 
 def three_point_line(n_points: int = 200) -> tuple[np.ndarray, np.ndarray]:
-    """Return (xs, ys) for the 3-point line, from the left corner over the arc to the right.
-
-    The arc gets `n_points` points and each corner adds one baseline point.
-    """
     break_angle = np.arcsin(CORNER_THREE_X / ARC_RADIUS)
     angles = np.linspace(-break_angle, break_angle, n_points)
     arc_xs = ARC_RADIUS * np.sin(angles)
@@ -44,7 +38,6 @@ def three_point_line(n_points: int = 200) -> tuple[np.ndarray, np.ndarray]:
 
 
 def draw_half_court(ax=None):
-    """Draw the half-court lines with equal aspect and return the Axes."""
     if ax is None:
         figure, ax = plt.subplots()
     paint_width = 2 * PAINT_HALF_WIDTH
@@ -66,13 +59,11 @@ def draw_half_court(ax=None):
 
 
 def _axis_points(start: float, stop: float, step: float) -> np.ndarray:
-    """Return points from `start` to `stop`, `step` apart, always ending exactly at `stop`."""
     points = np.arange(start, stop, step)
     return np.append(points, stop)
 
 
 def court_grid(step_ft: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
-    """Return (grid_x, grid_y) meshgrids covering the drawn court area."""
     xs = _axis_points(-SIDELINE_X, SIDELINE_X, step_ft)
     ys = _axis_points(BASELINE_Y, DRAWN_TOP_Y, step_ft)
     grid_x, grid_y = np.meshgrid(xs, ys)
@@ -80,7 +71,6 @@ def court_grid(step_ft: float = 0.5) -> tuple[np.ndarray, np.ndarray]:
 
 
 def plot_zone_map(grid_x, grid_y, grid_labels, ax=None):
-    """Color each grid point by its cell, draw the court on top, and return the Axes."""
     grid_labels = np.asarray(grid_labels)
     if grid_labels.shape != np.shape(grid_x):
         raise ValueError(f"grid_labels shape {grid_labels.shape} != grid shape {np.shape(grid_x)}")
@@ -94,13 +84,6 @@ def plot_zone_map(grid_x, grid_y, grid_labels, ax=None):
 
 
 def plot_shot_heatmap(x_ft, y_ft, ax=None, bins=60, max_count=None):
-    """Draw a log-scaled 2D histogram of shots on the court and return the Axes.
-
-    The bins always span the drawn court, so heatmaps from different seasons share bins.
-    Shots outside the drawn court are left out. Pass the same `max_count` to several
-    heatmaps to run their color scales from 1 to `max_count`. Without it, each heatmap
-    scales to its own counts.
-    """
     if max_count is None:
         norm = LogNorm()
     elif max_count < 1:
@@ -116,15 +99,10 @@ def plot_shot_heatmap(x_ft, y_ft, ax=None, bins=60, max_count=None):
 
 
 def _cell_colors(n_cells: int) -> np.ndarray:
-    """Return the RGBA color of cells 0 .. n_cells - 1, shape (n_cells, 4)."""
     return CELL_COLORMAP(np.arange(n_cells))
 
 
 def plot_prototypes(points_ft, ax=None, numbered=True):
-    """Draw one marker per prototype in its cell color and return the Axes.
-
-    Draws no court lines, so it can be layered on a court or on other seeds.
-    """
     points_ft = np.asarray(points_ft)
     if ax is None:
         figure, ax = plt.subplots()
@@ -138,11 +116,6 @@ def plot_prototypes(points_ft, ax=None, numbered=True):
 
 
 def plot_prototype_paths(path_points, season_names, ax=None):
-    """Draw each cell's path through the seasons and return the Axes.
-
-    Each cell gets one line in its cell color. Each season gets its own marker shape,
-    named in the legend. Draws no court lines.
-    """
     if len(path_points) != len(season_names):
         raise ValueError(f"{len(path_points)} seasons of points but {len(season_names)} names")
     if len(season_names) > len(SEASON_MARKERS):

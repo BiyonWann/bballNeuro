@@ -1,5 +1,3 @@
-"""Experiment runners that tie the data, network and metrics modules together."""
-
 import numpy as np
 import pandas as pd
 
@@ -10,7 +8,6 @@ TOP_MAX_ANGLE = 0.4
 
 
 def _line_recovery(weights: np.ndarray, train: pd.DataFrame, test: pd.DataFrame, kind: str) -> dict:
-    """Return accuracy and the majority baseline, with cell types learned from train shots."""
     train_labels = network.assign(data.get_inputs(train, kind), weights)
     test_labels = network.assign(data.get_inputs(test, kind), weights)
     cell_is_three = metrics.cell_shot_type(train_labels, train["is_three"], len(weights))
@@ -21,7 +18,6 @@ def _line_recovery(weights: np.ndarray, train: pd.DataFrame, test: pd.DataFrame,
 
 
 def _test_fit(weights: np.ndarray, test: pd.DataFrame, kind: str) -> dict:
-    """Return quantization error, ARI and group shares measured on test shots."""
     test_inputs = data.get_inputs(test, kind)
     test_labels = network.assign(test_inputs, weights)
     distances = metrics.prototype_distances(weights, kind)
@@ -34,7 +30,6 @@ def _test_fit(weights: np.ndarray, test: pd.DataFrame, kind: str) -> dict:
 
 
 def _mean_arc_purity(weights: np.ndarray, test: pd.DataFrame, kind: str) -> float:
-    """Return the mean test purity of beyond-20 cells that win shots, NaN if there are none."""
     test_labels = network.assign(data.get_inputs(test, kind), weights)
     purity = metrics.three_point_purity(test_labels, test["is_three"], len(weights))
     is_arc = metrics.prototype_distances(weights, kind) > metrics.MID_MAX_FT
@@ -45,7 +40,6 @@ def _mean_arc_purity(weights: np.ndarray, test: pd.DataFrame, kind: str) -> floa
 
 
 def evaluate(weights: np.ndarray, train: pd.DataFrame, test: pd.DataFrame, kind: str) -> dict:
-    """Return line-recovery, fit and allocation results for a set of prototypes."""
     result = _line_recovery(weights, train, test, kind)
     result.update(_test_fit(weights, test, kind))
     result["mean_arc_purity"] = _mean_arc_purity(weights, test, kind)
@@ -61,7 +55,6 @@ def run_season(
     n_cells: int = 6,
     seeds: tuple = (0, 1, 2, 3, 4),
 ) -> tuple:
-    """Return (results with one row per seed, the trained weights for each seed)."""
     train_inputs = data.get_inputs(train, kind)
     rows = []
     all_weights = []
@@ -83,7 +76,6 @@ def run_baselines(
     n_cells: int = 6,
     seeds: tuple = (0, 1, 2, 3, 4),
 ) -> pd.DataFrame:
-    """Return evaluate rows for k-means centers and untrained random prototypes, per seed."""
     train_inputs = data.get_inputs(train, kind)
     rows = []
     for seed in seeds:
@@ -97,7 +89,6 @@ def run_baselines(
 
 
 def _sequential_row(name: str, result: dict, movement: float) -> dict:
-    """Return one season's summary: its name, movement, group shares and accuracy."""
     row = {"season": name, "mean_movement": movement}
     for key in ["rim", "mid_range", "beyond_20", "accuracy"]:
         row[key] = result[key]
@@ -107,10 +98,6 @@ def _sequential_row(name: str, result: dict, movement: float) -> dict:
 def run_sequential(
     seasons: list, kind: str = "cartesian", n_cells: int = 6, seed: int = 0
 ) -> tuple:
-    """Return (weights after each season, one summary row per season) from one network.
-
-    Each season starts from the previous season's weights, so the first season has no movement.
-    """
     all_weights = []
     rows = []
     previous = None
@@ -128,17 +115,12 @@ def run_sequential(
 
 
 def _mean_or_nan(values: np.ndarray) -> float:
-    """Return the mean of values, or NaN when there are none."""
     if len(values) == 0:
         return float("nan")
     return float(values.mean())
 
 
 def shape_test(weights: np.ndarray, kind: str) -> dict:
-    """Return the mean distance and count of corner cells and top-of-the-arc cells.
-
-    Only cells beyond 20 ft count. A mean is NaN when its group is empty.
-    """
     distances = metrics.prototype_distances(weights, kind)
     angles = np.abs(metrics.prototype_angles(weights, kind))
     is_arc = distances > metrics.MID_MAX_FT
@@ -153,6 +135,5 @@ def shape_test(weights: np.ndarray, kind: str) -> dict:
 
 
 def summarize(results: pd.DataFrame) -> pd.DataFrame:
-    """Return the mean and standard deviation of every numeric column except seed."""
     numbers = results.select_dtypes(include="number").drop(columns="seed", errors="ignore")
     return pd.DataFrame({"mean": numbers.mean(), "std": numbers.std()})

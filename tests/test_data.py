@@ -210,7 +210,6 @@ def test_round_trip(kind):
 
 
 def shots_at(locations):
-    """Return a one-game shots frame with a 2PT Mid-Range shot at each (LOC_X, LOC_Y)."""
     n_shots = len(locations)
     return pd.DataFrame(
         {
@@ -336,7 +335,6 @@ def test_get_inputs_bad_kind_raises(xy_only):
 
 
 def game_shots(n_games):
-    """Return 3 shots per game for games 1..n_games, each with a unique shot_id."""
     game_ids = []
     for game_id in range(1, n_games + 1):
         game_ids = game_ids + [game_id, game_id, game_id]
