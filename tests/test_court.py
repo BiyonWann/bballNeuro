@@ -16,7 +16,6 @@ def close_figures():
 
 
 def count_three_point_lines(ax):
-    """Return how many lines on `ax` trace exactly the 3-point line."""
     line_xs, line_ys = court.three_point_line()
     count = 0
     for line in ax.lines:
@@ -158,7 +157,6 @@ def test_court_grid_coarse_step_reaches_edges():
 
 
 def small_grid():
-    """Return a 2 x 2 grid of court points."""
     return np.meshgrid([-10.0, 10.0], [0.0, 20.0])
 
 
@@ -199,7 +197,6 @@ def test_zone_map_draws_court_lines():
 
 
 def drawn_zone_colors(ax):
-    """Render `ax` and return the RGBA face color of each zone-map grid point, row by row."""
     ax.figure.canvas.draw()
     return np.asarray(ax.collections[0].get_facecolor())
 
@@ -240,12 +237,10 @@ def test_twenty_labels_give_twenty_colors():
 
 
 def four_shots():
-    """Return x and y in feet for three shots at (0, 1) and one at (10, 20)."""
     return np.array([0.0, 0.0, 0.0, 10.0]), np.array([1.0, 1.0, 1.0, 20.0])
 
 
 def heatmap_counts(ax):
-    """Return the per-bin shot counts drawn by the heatmap on `ax`."""
     return np.ma.asarray(ax.collections[0].get_array())
 
 
@@ -360,7 +355,6 @@ def test_heatmap_max_count_keeps_counts_and_court():
 
 
 def two_shot_sets_with_shared_three_shot_bin():
-    """Return two shot sets that both have a 3-shot bin at (0, 1), with different busiest bins."""
     x_first, y_first = four_shots()
     x_second = np.array([0.0, 0.0, 0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
     y_second = np.array([1.0, 1.0, 1.0, 20.0, 20.0, 20.0, 20.0, 20.0])
@@ -368,7 +362,6 @@ def two_shot_sets_with_shared_three_shot_bin():
 
 
 def three_shot_bin_color(ax):
-    """Render `ax` and return the RGBA face color of the bin holding 3 shots."""
     ax.figure.canvas.draw()
     counts = np.ma.asarray(ax.collections[0].get_array()).ravel()
     colors = np.asarray(ax.collections[0].get_facecolor())
@@ -452,12 +445,10 @@ def test_heatmap_max_count_below_one_raises(max_count):
 
 
 def three_prototypes():
-    """Return three prototypes in court feet: near the rim, left corner and top of the arc."""
     return np.array([[0.0, 3.0], [-22.0, 0.0], [0.0, 24.0]])
 
 
 def marker_positions(ax):
-    """Return every scatter marker position on `ax`, stacked into one (n, 2) array."""
     positions = [np.asarray(collection.get_offsets()) for collection in ax.collections]
     return np.concatenate(positions)
 
@@ -514,7 +505,6 @@ SEASON_NAMES = ["2000-01", "2015-16", "2024-25"]
 
 
 def two_cell_paths():
-    """Return 3 seasons of 2 cells: cell 0 moves out from the rim, cell 1 into the corner."""
     return [
         np.array([[0.0, 5.0], [-20.0, 0.0]]),
         np.array([[0.0, 10.0], [-21.0, 0.0]]),
