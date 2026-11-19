@@ -17,7 +17,7 @@ ZONES = [
 ]
 ARC_RADIUS_FT = 23.75
 SHOT_COLUMNS = ["GAME_ID", "LOC_X", "LOC_Y", "SHOT_TYPE", "SHOT_ZONE_BASIC"]
-# A little past the baseline, so shots right behind the rim do not wrap to +-pi.
+# a little past the baseline so shots behind the rim do not wrap
 MAX_ANGLE = np.pi / 2 + 0.25
 
 
@@ -39,7 +39,7 @@ def download_season(start_year: int, data_dir: str | Path = "data") -> Path:
 def load_season(start_year: int, data_dir: str | Path = "data") -> pd.DataFrame:
     csv_path = download_season(start_year, data_dir)
     shots = pd.read_csv(csv_path, usecols=SHOT_COLUMNS)
-    # read_csv keeps file order, so reorder to the documented column order.
+    # read_csv keeps file order so put the columns in our order
     return shots[SHOT_COLUMNS]
 
 
@@ -58,7 +58,7 @@ def add_features(shots: pd.DataFrame) -> pd.DataFrame:
     polar = court_to_inputs(points_ft, "polar")
     featured["distance_ft"] = polar[:, 0]
     featured["arc_ft"] = polar[:, 1]
-    # court_to_inputs already applied the angle clip, so recover the angle from arc_ft.
+    # arc_ft already has the clip so the angle comes from it
     featured["angle"] = featured["arc_ft"] / ARC_RADIUS_FT
     featured["is_three"] = featured["SHOT_TYPE"].str.startswith("3PT")
     return featured
@@ -88,7 +88,7 @@ def inputs_to_court(points: np.ndarray, kind: str) -> np.ndarray:
         return points.copy()
     distance_ft = points[:, 0]
     angle = points[:, 1] / ARC_RADIUS_FT
-    # The angle is measured from the +y axis, so x uses sin and y uses cos.
+    # angle starts at the top of the key so x uses sin
     return np.column_stack([distance_ft * np.sin(angle), distance_ft * np.cos(angle)])
 
 

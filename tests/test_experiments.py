@@ -270,7 +270,7 @@ def test_run_season_deterministic(big_train, big_test):
 def test_run_season_ignores_labels(big_train, big_test):
     scrambled = big_train.copy()
     scrambled["is_three"] = ~scrambled["is_three"]
-    # Reversing puts the arc zone on the rim shots and the rim zone on the arc shots.
+    # reversed zones put arc labels on rim shots and the reverse
     scrambled["SHOT_ZONE_BASIC"] = np.flip(scrambled["SHOT_ZONE_BASIC"].to_numpy())
 
     _, original_weights = experiments.run_season(big_train, big_test, n_cells=2, seeds=(0, 1))

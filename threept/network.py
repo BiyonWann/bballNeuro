@@ -2,6 +2,7 @@ import numpy as np
 
 
 def find_winner(shot: np.ndarray, weights: np.ndarray) -> int:
+    # ties go to the lowest index
     # (n_cells, 2) - (2,)
     distances = np.linalg.norm(weights - shot, axis=1)
     return int(np.argmin(distances))
@@ -46,10 +47,12 @@ def _leak_losers(x: np.ndarray, weights: np.ndarray, winner: int, leak_k: float)
     losers = np.arange(len(weights)) != winner
     w = weights[losers]
     # (n_losers, 2) - (2,)
+    # written in place so the caller sees the move
     weights[losers] = w + leak_k * (x - w)
 
 
 def assign(inputs: np.ndarray, weights: np.ndarray) -> np.ndarray:
+    # ties go to the lowest index
     # (n_shots, 1, 2) - (1, n_cells, 2)
     differences = inputs[:, np.newaxis, :] - weights[np.newaxis, :, :]
     distances = np.linalg.norm(differences, axis=2)

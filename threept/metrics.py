@@ -6,7 +6,7 @@ from sklearn.metrics import adjusted_rand_score
 RIM_MAX_FT = 8
 MID_MAX_FT = 20
 KINDS = ["cartesian", "polar"]
-# Same value as data.ARC_RADIUS_FT, repeated so metrics never imports data.
+# same value as ARC_RADIUS_FT so metrics never imports data
 ARC_RADIUS_FT = 23.75
 
 
@@ -112,7 +112,7 @@ def adjusted_rand(labels: np.ndarray, zones: np.ndarray) -> float:
 def zone_confusion(
     labels: np.ndarray, zones: np.ndarray, zone_names: list, n_cells: int
 ) -> pd.DataFrame:
-    # Plain arrays, so a Series index from the test split cannot misalign the rows.
+    # plain arrays so the test split index cannot misalign rows
     labels = np.asarray(labels)
     zones = np.asarray(zones)
     _check_labels(labels, n_cells)
@@ -134,7 +134,7 @@ def prototype_gap(weights: np.ndarray, reference: np.ndarray) -> float:
     distances = _pairwise_distances(reference, weights)
     matched_distances = []
     for _ in range(len(reference)):
-        # argmin searches the flattened array, so turn its index back into (row, column).
+        # argmin gives a flat index so unravel it to row and column
         row, column = np.unravel_index(np.argmin(distances), distances.shape)
         matched_distances.append(distances[row, column])
         distances[row, :] = np.inf

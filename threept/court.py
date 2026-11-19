@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib.colors import BoundaryNorm, LogNorm
 from matplotlib.patches import Arc, Circle, Rectangle
 
+# all lengths are in feet with the basket at 0 0
 BASELINE_Y = -5.25
 HALF_COURT_Y = 41.75
 SIDELINE_X = 25
@@ -18,10 +19,10 @@ FREE_THROW_RADIUS = 6
 DRAWN_TOP_Y = 35
 LINE_COLOR = "black"
 
-# Cell i is always tab20 color i, so a cell keeps its color across plots, seeds and label sets.
+# cell i always gets tab20 color i so colors match across plots
 CELL_COLORMAP = matplotlib.colormaps["tab20"]
 MAX_CELLS = 20
-# One bin per cell index: cell i falls between i - 0.5 and i + 0.5.
+# one bin per cell so each index gets its own color
 CELL_NORM = BoundaryNorm(np.arange(MAX_CELLS + 1) - 0.5, MAX_CELLS)
 SEASON_MARKERS = ["o", "s", "^", "D", "v", "P"]
 LEGEND_MARKER_COLOR = "gray"
@@ -135,7 +136,7 @@ def plot_prototype_paths(path_points, season_names, ax=None):
         label = season_names[season]
         ax.scatter(xs, ys, c=colors, marker=marker, edgecolors=LINE_COLOR, label=label, zorder=3)
     legend = ax.legend()
-    # Season markers in the legend stay gray so they don't read as cell 0.
+    # gray legend markers so they do not look like cell 0
     for handle in legend.legend_handles:
         handle.set_facecolor(LEGEND_MARKER_COLOR)
     return ax
